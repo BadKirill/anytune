@@ -1,0 +1,49 @@
+export const NOTE_NAMES = [
+  'C',
+  'C#',
+  'D',
+  'D#',
+  'E',
+  'F',
+  'F#',
+  'G',
+  'G#',
+  'A',
+  'A#',
+  'B',
+] as const
+
+export type NoteName = (typeof NOTE_NAMES)[number]
+
+/** A musical pitch in scientific pitch notation, e.g. { note: "A", octave: 4 }. */
+export interface Pitch {
+  note: NoteName
+  octave: number
+}
+
+const SEMITONES_PER_OCTAVE = 12
+/** MIDI number of C0 (C4 = 60, so C0 = 12). */
+const MIDI_C0 = 12
+
+/** Converts a pitch to its MIDI note number (C4 = 60, A4 = 69). */
+export function pitchToMidi(pitch: Pitch): number {
+  return MIDI_C0 + pitch.octave * SEMITONES_PER_OCTAVE + NOTE_NAMES.indexOf(pitch.note)
+}
+
+/** Converts a MIDI note number to a pitch (inverse of pitchToMidi). */
+export function midiToPitch(midi: number): Pitch {
+  const rounded = Math.round(midi)
+  const semitonesFromC0 = rounded - MIDI_C0
+  const octave = Math.floor(semitonesFromC0 / SEMITONES_PER_OCTAVE)
+  const index = semitonesFromC0 - octave * SEMITONES_PER_OCTAVE
+  const note = NOTE_NAMES[index]
+  if (note === undefined) {
+    throw new Error(`MIDI number out of range: ${String(midi)}`)
+  }
+  return { note, octave }
+}
+
+/** Formats a pitch as a compact label, e.g. "G#1". */
+export function formatPitch(pitch: Pitch): string {
+  return `${pitch.note}${String(pitch.octave)}`
+}
