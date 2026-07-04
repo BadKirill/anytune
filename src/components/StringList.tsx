@@ -1,5 +1,29 @@
-import { formatPitch } from '../core/music'
+import { formatPitch, pitchToMidi, type Pitch } from '../core/music'
 import type { Tuning } from '../core/tunings'
+
+/** Visual string thickness in px: lower pitch = thicker string, like real gauges. */
+function stringThickness(pitch: Pitch): number {
+  const midi = pitchToMidi(pitch)
+  const E4_MIDI = 64
+  return Math.min(6.5, Math.max(1, (E4_MIDI - midi) * 0.14 + 1))
+}
+
+function StringGauge({ pitch }: { pitch: Pitch }) {
+  const thickness = stringThickness(pitch)
+  return (
+    <svg className="string-gauge" viewBox="0 0 52 10" aria-hidden="true">
+      <line
+        x1="3"
+        y1="5"
+        x2="49"
+        y2="5"
+        stroke="currentColor"
+        strokeWidth={thickness}
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
 
 interface StringListProps {
   tuning: Tuning
@@ -37,17 +61,19 @@ export function StringList({
           .filter(Boolean)
           .join(' ')
         return (
-          <button
-            key={index}
-            type="button"
-            className={classes}
-            onClick={() => {
-              handleTap(index)
-            }}
-          >
-            <span className="string-number">{index + 1}</span>
-            <span className="string-note">{formatPitch(string.pitch)}</span>
-          </button>
+          <div key={index} className="string-item">
+            <StringGauge pitch={string.pitch} />
+            <button
+              type="button"
+              className={classes}
+              onClick={() => {
+                handleTap(index)
+              }}
+            >
+              <span className="string-number">{index + 1}</span>
+              <span className="string-note">{formatPitch(string.pitch)}</span>
+            </button>
+          </div>
         )
       })}
     </div>

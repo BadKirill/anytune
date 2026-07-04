@@ -114,6 +114,19 @@
   margin-top: auto;
 }
 
+.string-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.string-gauge {
+  width: 52px;
+  height: 10px;
+  color: #b9c6bf;
+}
+
 .string-button {
   display: flex;
   flex-direction: column;
