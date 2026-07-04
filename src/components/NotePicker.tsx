@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { NOTE_NAMES, type NoteName, type Pitch } from '../core/music'
+import { useLockBodyScroll } from './useLockBodyScroll'
 import { UI } from './strings'
 
 const OCTAVES = [0, 1, 2, 3, 4, 5, 6]
@@ -41,6 +42,7 @@ function ChipGrid<T extends string | number>({
 export function NotePicker({ initial, onConfirm, onClose }: NotePickerProps) {
   const [note, setNote] = useState<NoteName>(initial.note)
   const [octave, setOctave] = useState<number>(initial.octave)
+  useLockBodyScroll()
 
   return (
     <div className="overlay" onClick={onClose}>

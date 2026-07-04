@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { formatPitch } from '../core/music'
 import { PRESET_TUNINGS, type Instrument, type Tuning } from '../core/tunings'
+import { useLockBodyScroll } from './useLockBodyScroll'
 import { UI } from './strings'
 
 interface PresetPickerProps {
@@ -91,6 +92,8 @@ export function PresetPicker({
   onDeleteCustom,
   onClose,
 }: PresetPickerProps) {
+  useLockBodyScroll()
+
   return (
     <div className="overlay" onClick={onClose}>
       <div
