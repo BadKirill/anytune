@@ -19,7 +19,8 @@ Capacitor-wrapped App Store / Play Store builds later.
 ```bash
 npm install
 npm run dev        # dev server
-npm run check      # lint + format + typecheck + tests (must pass)
+npm run check      # lint + format + typecheck + unit tests (must pass)
+npm run test:e2e   # Playwright end-to-end tests (mic stubbed with an oscillator)
 npm run build      # production build (dist/)
 ```
 

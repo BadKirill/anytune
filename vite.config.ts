@@ -1,11 +1,15 @@
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { configDefaults, defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
 export default defineConfig({
   // Served from https://<user>.github.io/anytune/ on GitHub Pages
   base: '/anytune/',
+  test: {
+    // e2e/ belongs to Playwright, not Vitest
+    exclude: [...configDefaults.exclude, 'e2e/**'],
+  },
   plugins: [
     react(),
     VitePWA({
