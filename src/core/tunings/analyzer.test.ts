@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { pitchToFrequency, type NoteName } from '../music'
-import { analyze } from './analyzer'
+import { analyze, analyzeString } from './analyzer'
 import { PRESET_TUNINGS } from './presets'
 import type { Tuning } from './types'
 
@@ -59,6 +59,19 @@ describe('analyze', () => {
 
   it('returns null for a tuning with no strings', () => {
     expect(analyze(440, tuningOf([]))).toBeNull()
+  })
+})
+
+describe('analyzeString', () => {
+  it('analyzes only the requested string even when another is closer', () => {
+    const f1 = pitchToFrequency({ note: 'F', octave: 1 })
+    const result = analyzeString(f1, DEMIURGE, 1)
+    expect(result?.stringIndex).toBe(1)
+    expect(result?.direction).toBe('tighten')
+  })
+
+  it('returns null for an out-of-range string index', () => {
+    expect(analyzeString(440, DEMIURGE, 9)).toBeNull()
   })
 })
 

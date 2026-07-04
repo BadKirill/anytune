@@ -21,6 +21,20 @@ function directionFor(cents: number): TuneDirection {
   return cents < 0 ? 'tighten' : 'loosen'
 }
 
+/** Analyzes a frequency against one specific string of the tuning. */
+export function analyzeString(
+  frequency: number,
+  tuning: Tuning,
+  stringIndex: number,
+): StringAnalysis | null {
+  const string = tuning.strings[stringIndex]
+  if (!string) {
+    return null
+  }
+  const cents = centsBetween(frequency, pitchToFrequency(string.pitch))
+  return { stringIndex, cents, direction: directionFor(cents) }
+}
+
 /**
  * Matches a detected frequency to the nearest string of the tuning
  * (nearest on the log scale, i.e. by cents) and reports how far off it is.
