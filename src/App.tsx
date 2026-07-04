@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import './App.css'
+import { InstallHint } from './components/InstallHint'
 import { NotePicker } from './components/NotePicker'
 import { PresetPicker } from './components/PresetPicker'
 import { StringList } from './components/StringList'
@@ -112,6 +113,7 @@ function App() {
 
   return (
     <div className="app">
+      <InstallHint />
       <Header
         state={state}
         onOpenPresets={() => {
