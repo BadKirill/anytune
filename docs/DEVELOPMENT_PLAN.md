@@ -13,7 +13,7 @@ Requirements: mobile app for Android and iOS, one TypeScript codebase, installab
 Chosen approach: **web app (React + TypeScript) wrapped in Capacitor**.
 
 - **Install before stores:** the same build is deployed as a PWA — anyone installs it from a link, today. Capacitor builds produce the store binaries later, no rewrite.
-- **Microphone quality (priority #1):** the Web Audio API gives raw PCM samples via `AudioWorklet` and lets us explicitly disable `echoCancellation`, `noiseSuppression`, and `autoGainControl` — mandatory for a tuner, since those filters eat exactly the low-frequency content of bass strings. This works identically in the browser and inside Capacitor's webview (iOS WKWebView supports `getUserMedia`). React Native, by contrast, has *no* built-in raw audio access and relies on third-party native modules — the riskier option for this app.
+- **Microphone quality (priority #1):** the Web Audio API gives raw PCM samples via `AudioWorklet` and lets us explicitly disable `echoCancellation`, `noiseSuppression`, and `autoGainControl` — mandatory for a tuner, since those filters eat exactly the low-frequency content of bass strings. This works identically in the browser and inside Capacitor's webview (iOS WKWebView supports `getUserMedia`). React Native, by contrast, has _no_ built-in raw audio access and relies on third-party native modules — the riskier option for this app.
 - **Gestures:** taps/swipes/drags needed by a tuner work fine with web pointer events.
 
 ### Future migration path to React Native (if ever needed)
