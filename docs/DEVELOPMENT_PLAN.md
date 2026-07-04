@@ -1,5 +1,19 @@
 # AnyTune — Custom-Tuning Guitar & Bass Tuner (Mobile)
 
+## Status
+
+Steps 1–7 are complete: the app works as an installable PWA with editable
+per-string tunings, presets, custom tuning persistence, and live pitch detection
+(verified end-to-end with synthetic mic input, including 43.65 Hz F1 in unit tests).
+
+Remaining:
+
+- Step 8 (Capacitor shell) — not started; requires Xcode / Android Studio.
+- Step 9 (real-device testing) — needs a physical phone and instrument; thresholds
+  in `src/audio/pitchDetector.ts` and `src/core/tunings/analyzer.ts` may need tuning
+  after that.
+- Deployment to a static host for link-based install distribution.
+
 ## Idea review: is it worth building?
 
 Yes. GuitarTuna locks custom/editable tunings behind a paid subscription, and most free tuners only offer fixed presets. A free tuner where you type any note per string (e.g. G#-D#-A#-F for Meshuggah's Demiurge) fills a real gap for non-professional musicians.

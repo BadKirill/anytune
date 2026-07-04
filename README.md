@@ -1,54 +1,33 @@
-# React + TypeScript + Vite
+# anytune
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Free tuner for guitar and bass with **fully editable per-string tunings**.
 
-Currently, two official plugins are available:
+Pick a preset (Standard, Drop D, Drop C#, Drop C, ...) or tap any string and set it
+to any note — for example G#1 D#2 A#2 F1 to play Meshuggah's Demiurge. Then play:
+the app listens through the microphone and shows how far each string is from the
+target and which way to turn the peg.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+One TypeScript codebase for everything: installable Progressive Web App today,
+Capacitor-wrapped App Store / Play Store builds later.
 
-## Expanding the ESLint configuration
+## Develop
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+npm install
+npm run dev        # dev server
+npm run check      # lint + format + typecheck + tests (must pass)
+npm run build      # production build (dist/)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Requires Node 20+.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Project structure
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+- `src/core/` — pure TypeScript domain logic (music math, tunings, analyzer). No React, no browser APIs; fully unit-tested.
+- `src/audio/` — microphone capture (AudioWorklet) and pitch detection (pitchy, McLeod method).
+- `src/components/` — UI: gauge, string list, note picker, preset picker.
+- `src/state/` — tuner screen state.
+- `src/storage/` — localStorage persistence of custom tunings.
+
+See [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) for architecture decisions
+and the development roadmap, and [AGENTS.md](AGENTS.md) for contributor/agent rules.
