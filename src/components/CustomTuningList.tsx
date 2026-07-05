@@ -32,29 +32,29 @@ export function CustomTuningList({
     setEditName('')
   }
 
-  if (tunings.length === 0) {
-    return null
-  }
-
   return (
     <>
       <h3>{UI.myTunings}</h3>
-      {tunings.map((tuning) => (
-        <CustomTuningRow
-          key={tuning.id}
-          tuning={tuning}
-          editing={editingId === tuning.id}
-          editName={editName}
-          onSelect={onSelect}
-          onDelete={onDelete}
-          onStartEdit={(next) => {
-            setEditingId(next.id)
-            setEditName(next.name)
-          }}
-          onEditNameChange={setEditName}
-          onSubmitEdit={submitEdit}
-        />
-      ))}
+      {tunings.length === 0 ? (
+        <p className="hint hint-muted">{UI.noCustomTunings}</p>
+      ) : (
+        tunings.map((tuning) => (
+          <CustomTuningRow
+            key={tuning.id}
+            tuning={tuning}
+            editing={editingId === tuning.id}
+            editName={editName}
+            onSelect={onSelect}
+            onDelete={onDelete}
+            onStartEdit={(next) => {
+              setEditingId(next.id)
+              setEditName(next.name)
+            }}
+            onEditNameChange={setEditName}
+            onSubmitEdit={submitEdit}
+          />
+        ))
+      )}
     </>
   )
 }

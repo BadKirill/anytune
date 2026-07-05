@@ -17,7 +17,7 @@ async function saveCustomTuning(page: import('@playwright/test').Page, name: str
   await page.getByRole('button', { name: 'Custom' }).click()
   const input = page.getByRole('textbox', { name: 'Tuning name' })
   await input.fill(name)
-  await input.press('Enter')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
   await expect(page.getByRole('button', { name: name })).toBeVisible()
 }
 
@@ -74,7 +74,7 @@ test('saved custom tunings persist, rename on swipe, and delete resets header', 
   })
   const renameInput = page.getByRole('textbox', { name: 'Tuning name' })
   await renameInput.fill('Demiurge renamed')
-  await renameInput.press('Enter')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
   await expect(page.getByRole('button', { name: /Demiurge renamed G#1/ })).toBeVisible()
   await page.getByRole('button', { name: /Demiurge renamed G#1/ }).evaluate((el) => {
     ;(el as HTMLButtonElement).click()

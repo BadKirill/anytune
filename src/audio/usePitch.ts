@@ -8,15 +8,18 @@ import {
   type SetStateAction,
 } from 'react'
 
+import { isPitchDetectionSuppressed } from './pitchGate'
 import {
   MicStreamError,
   startMicSession,
   type MicError,
   type MicSession,
 } from './micStream'
-import { detectPitch } from './pitchDetector'
+import { detectPitch, frequencyJumpCents } from './pitchDetector'
 
 const MEDIAN_WINDOW = 5
+/** Reject sudden octave-drop artifacts as a string fades out. */
+const MAX_JUMP_CENTS = 150
 
 export type PitchStatus = 'idle' | 'starting' | 'listening' | 'error'
 
@@ -40,12 +43,19 @@ function median(values: number[]): number {
   return sorted[Math.floor(sorted.length / 2)] ?? 0
 }
 
+function isStableJump(frequency: number, recent: number[]): boolean {
+  if (recent.length === 0) {
+    return true
+  }
+  return frequencyJumpCents(median(recent), frequency) <= MAX_JUMP_CENTS
+}
+
 function applyReading(
   reading: { frequency: number; clarity: number } | null,
   recentRef: RefObject<number[]>,
   setState: Dispatch<SetStateAction<PitchState>>,
 ) {
-  if (!reading) {
+  if (!reading || !isStableJump(reading.frequency, recentRef.current)) {
     recentRef.current = []
     setState((prev) => ({ ...prev, frequency: null, clarity: null }))
     return
@@ -67,7 +77,7 @@ export function usePitch(): PitchState & { start: () => void; stop: () => void }
   const activeRef = useRef(false)
 
   const handleWindow = useCallback((samples: Float32Array, sampleRate: number) => {
-    if (!activeRef.current) {
+    if (!activeRef.current || isPitchDetectionSuppressed()) {
       return
     }
     applyReading(detectPitch(samples, sampleRate), recentRef, setState)

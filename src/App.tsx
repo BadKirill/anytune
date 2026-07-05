@@ -9,9 +9,20 @@ import { TuneDirectionHint } from './components/TuneDirectionHint'
 import { TunerGauge } from './components/TunerGauge'
 import { UI } from './components/strings'
 import { formatPitch } from './core/music'
+import type { StringAnalysis } from './core/tunings'
 import { DRAFT_TUNING_ID, useTunerState, type TunerState } from './state/appState'
 
 type Modal = { kind: 'none' } | { kind: 'presets' } | { kind: 'edit'; index: number }
+
+function gaugeCentsFor(analysis: StringAnalysis | null): number | null {
+  if (!analysis) {
+    return null
+  }
+  if (analysis.direction === 'in-tune') {
+    return 0
+  }
+  return analysis.cents
+}
 
 function Header({
   state,
@@ -121,7 +132,7 @@ function App() {
       />
       <ModeControls state={state} />
       <TunerGauge
-        cents={analysis?.cents ?? null}
+        cents={gaugeCentsFor(analysis)}
         targetLabel={targetString ? formatPitch(targetString.pitch) : null}
         inTune={analysis?.direction === 'in-tune'}
       />

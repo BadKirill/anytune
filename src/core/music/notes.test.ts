@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatPitch, midiToPitch, pitchToMidi, type Pitch } from './notes'
+import { formatPitch, midiToPitch, pitchToMidi, pitchesEqual, type Pitch } from './notes'
 
 describe('pitchToMidi', () => {
   it('maps C4 to 60 and A4 to 69', () => {
@@ -33,5 +33,12 @@ describe('formatPitch', () => {
   it('formats note and octave', () => {
     expect(formatPitch({ note: 'G#', octave: 1 })).toBe('G#1')
     expect(formatPitch({ note: 'E', octave: 2 })).toBe('E2')
+  })
+})
+
+describe('pitchesEqual', () => {
+  it('matches identical pitches', () => {
+    expect(pitchesEqual({ note: 'E', octave: 2 }, { note: 'E', octave: 2 })).toBe(true)
+    expect(pitchesEqual({ note: 'E', octave: 2 }, { note: 'F', octave: 2 })).toBe(false)
   })
 })
