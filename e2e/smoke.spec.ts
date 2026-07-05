@@ -25,9 +25,8 @@ test.describe('live deploy smoke', () => {
     await expect(page.getByRole('button', { name: 'Close' })).toBeVisible()
   })
 
-  test('vertical guitar neck renders above string note buttons', async ({ page }) => {
+  test('string gauges render above each note button', async ({ page }) => {
     await page.goto(APP_URL)
-    await expect(page.locator('.string-neck-svg')).toBeVisible()
-    await expect(page.locator('.string-neck-line')).toHaveCount(6)
+    await expect(page.locator('.string-gauge')).toHaveCount(6)
   })
 })
