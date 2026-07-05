@@ -32,9 +32,6 @@
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-}
-
-.app-title span {
   color: var(--accent);
 }
 
@@ -104,37 +101,65 @@
   font-weight: 600;
 }
 
-/* Strings */
+/* Strings — vertical guitar neck */
 
-.string-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  margin-top: auto;
-}
-
-.string-item {
+.string-neck {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 12px;
+  margin-top: auto;
 }
 
-.string-gauge {
-  width: 52px;
-  height: 12px;
+.string-neck-svg {
+  width: min(100%, 280px);
+  height: auto;
   color: #b9c6bf;
+}
+
+.string-neck-board {
+  fill: var(--surface);
+  stroke: #2a3530;
+  stroke-width: 1.5;
+}
+
+.string-neck-line {
+  stroke: currentColor;
+  opacity: 0.75;
+}
+
+.string-neck-line-active {
+  stroke: var(--accent);
+  opacity: 1;
+}
+
+.string-neck-pin {
+  fill: currentColor;
+  opacity: 0.45;
+}
+
+.string-neck-pin-active {
+  fill: var(--accent);
+  opacity: 0.9;
+}
+
+.string-neck-notes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: min(100%, 280px);
 }
 
 .string-button {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 2px;
-  width: 52px;
-  padding: 12px 0;
-  border-radius: 16px;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 14px;
   background: var(--surface);
   border: 2px solid transparent;
 }

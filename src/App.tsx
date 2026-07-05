@@ -22,9 +22,7 @@ function Header({
 }) {
   return (
     <header className="app-header">
-      <h1 className="app-title">
-        any<span>tune</span>
-      </h1>
+      <h1 className="app-title">{UI.appName}</h1>
       <button type="button" className="tuning-picker-button" onClick={onOpenPresets}>
         {state.tuning.name}
       </button>

@@ -14,9 +14,11 @@ import {
   type MicError,
   type MicSession,
 } from './micStream'
-import { detectPitch } from './pitchDetector'
+import { detectPitch, windowRms } from './pitchDetector'
 
 const MEDIAN_WINDOW = 5
+/** How fast the ambient noise floor adapts when no string is sounding. */
+const NOISE_FLOOR_SMOOTHING = 0.08
 
 export type PitchStatus = 'idle' | 'starting' | 'listening' | 'error'
 
@@ -59,23 +61,46 @@ function applyReading(
   }))
 }
 
+function trackNoiseFloor(level: number, noiseFloorRef: RefObject<number>): void {
+  noiseFloorRef.current += (level - noiseFloorRef.current) * NOISE_FLOOR_SMOOTHING
+}
+
+function processWindow(
+  samples: Float32Array,
+  sampleRate: number,
+  noiseFloorRef: RefObject<number>,
+  recentRef: RefObject<number[]>,
+  setState: Dispatch<SetStateAction<PitchState>>,
+): void {
+  const level = windowRms(samples)
+  const reading = detectPitch(samples, sampleRate, {
+    noiseFloorRms: noiseFloorRef.current,
+  })
+  if (!reading) {
+    trackNoiseFloor(level, noiseFloorRef)
+  }
+  applyReading(reading, recentRef, setState)
+}
+
 /** Starts/stops the mic pipeline and exposes a smoothed pitch reading. */
 export function usePitch(): PitchState & { start: () => void; stop: () => void } {
   const [state, setState] = useState<PitchState>(IDLE_STATE)
   const sessionRef = useRef<MicSession | null>(null)
   const recentRef = useRef<number[]>([])
+  const noiseFloorRef = useRef(0)
   const activeRef = useRef(false)
 
   const handleWindow = useCallback((samples: Float32Array, sampleRate: number) => {
     if (!activeRef.current) {
       return
     }
-    applyReading(detectPitch(samples, sampleRate), recentRef, setState)
+    processWindow(samples, sampleRate, noiseFloorRef, recentRef, setState)
   }, [])
 
   const stop = useCallback(() => {
     activeRef.current = false
     recentRef.current = []
+    noiseFloorRef.current = 0
     setState(IDLE_STATE)
     sessionRef.current?.stop()
     sessionRef.current = null

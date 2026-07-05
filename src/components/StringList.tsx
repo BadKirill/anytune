@@ -5,24 +5,93 @@ import type { Tuning } from '../core/tunings'
 function stringThickness(pitch: Pitch): number {
   const midi = pitchToMidi(pitch)
   const E4_MIDI = 64
-  return Math.min(6.5, Math.max(1, (E4_MIDI - midi) * 0.14 + 1))
+  return Math.min(5, Math.max(1.2, (E4_MIDI - midi) * 0.12 + 1.2))
 }
 
-function StringGauge({ pitch }: { pitch: Pitch }) {
+const NECK_PADDING_X = 14
+const NECK_PADDING_Y = 10
+const STRING_GAP = 14
+
+function neckHeight(stringCount: number): number {
+  return NECK_PADDING_Y * 2 + (stringCount - 1) * STRING_GAP
+}
+
+function stringY(visualIndex: number): number {
+  return NECK_PADDING_Y + visualIndex * STRING_GAP
+}
+
+function NeckStringLine({
+  pitch,
+  visualIndex,
+  active,
+  lineEnd,
+  sourceIndex,
+}: {
+  pitch: Pitch
+  visualIndex: number
+  active: boolean
+  lineEnd: number
+  sourceIndex: number
+}) {
+  const y = stringY(visualIndex)
   const thickness = stringThickness(pitch)
+  const lineClass = active
+    ? 'string-neck-line string-neck-line-active'
+    : 'string-neck-line'
+  const pinClass = active ? 'string-neck-pin string-neck-pin-active' : 'string-neck-pin'
   return (
-    <svg className="string-gauge" viewBox="0 0 52 12" aria-hidden="true">
-      <circle cx="4" cy="6" r="1.8" fill="currentColor" opacity="0.5" />
+    <g key={sourceIndex}>
+      <circle cx={NECK_PADDING_X} cy={y} r="1.6" className={pinClass} />
       <line
-        x1="4"
-        y1="6"
-        x2="48"
-        y2="6"
-        stroke="currentColor"
+        x1={NECK_PADDING_X}
+        y1={y}
+        x2={lineEnd}
+        y2={y}
+        className={lineClass}
         strokeWidth={thickness}
         strokeLinecap="round"
       />
-      <circle cx="48" cy="6" r="1.8" fill="currentColor" opacity="0.5" />
+      <circle cx={lineEnd} cy={y} r="1.6" className={pinClass} />
+    </g>
+  )
+}
+
+function GuitarNeck({
+  strings,
+  activeIndex,
+}: {
+  strings: Tuning['strings']
+  activeIndex: number | null
+}) {
+  const count = strings.length
+  const height = neckHeight(count)
+  const width = 120
+  const lineEnd = width - NECK_PADDING_X
+
+  return (
+    <svg
+      className="string-neck-svg"
+      viewBox={`0 0 ${String(width)} ${String(height)}`}
+      aria-hidden="true"
+    >
+      <rect
+        x="1"
+        y="1"
+        width={width - 2}
+        height={height - 2}
+        rx="10"
+        className="string-neck-board"
+      />
+      {strings.map((string, visualIndex) => (
+        <NeckStringLine
+          key={count - 1 - visualIndex}
+          sourceIndex={count - 1 - visualIndex}
+          pitch={string.pitch}
+          visualIndex={visualIndex}
+          active={count - 1 - visualIndex === activeIndex}
+          lineEnd={lineEnd}
+        />
+      ))}
     </svg>
   )
 }
@@ -52,20 +121,23 @@ export function StringList({
     }
   }
 
+  const displayOrder = [...tuning.strings.entries()].reverse()
+
   return (
-    <div className="string-list">
-      {tuning.strings.map((string, index) => {
-        const classes = [
-          'string-button',
-          index === activeIndex ? 'string-active' : '',
-          index === manualIndex ? 'string-manual' : '',
-        ]
-          .filter(Boolean)
-          .join(' ')
-        return (
-          <div key={index} className="string-item">
-            <StringGauge pitch={string.pitch} />
+    <div className="string-neck">
+      <GuitarNeck strings={tuning.strings} activeIndex={activeIndex} />
+      <div className="string-neck-notes">
+        {displayOrder.map(([index, string]) => {
+          const classes = [
+            'string-button',
+            index === activeIndex ? 'string-active' : '',
+            index === manualIndex ? 'string-manual' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')
+          return (
             <button
+              key={index}
               type="button"
               className={classes}
               onClick={() => {
@@ -75,9 +147,9 @@ export function StringList({
               <span className="string-number">{index + 1}</span>
               <span className="string-note">{formatPitch(string.pitch)}</span>
             </button>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
     </div>
   )
 }
