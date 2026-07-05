@@ -80,6 +80,7 @@ function Modals({
           onClose()
         }}
         onDeleteCustom={state.deleteCustom}
+        onRenameCustom={state.renameCustom}
         onClose={onClose}
       />
     )

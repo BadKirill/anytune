@@ -2,30 +2,13 @@ import { useCallback, useMemo, useState } from 'react'
 
 import { usePitch } from '../audio/usePitch'
 import type { Pitch } from '../core/music'
-import {
-  analyze,
-  analyzeString,
-  DEFAULT_TUNING_ID,
-  PRESET_TUNINGS,
-  type StringAnalysis,
-  type Tuning,
-} from '../core/tunings'
-import {
-  listCustom,
-  remove as removeStored,
-  save as saveStored,
-} from '../storage/tuningStore'
+import { analyze, analyzeString, type StringAnalysis, type Tuning } from '../core/tunings'
+import { listCustom } from '../storage/tuningStore'
+
+import { defaultTuning } from './tuningDefaults'
+import { useCustomTuningActions } from './useCustomTuningActions'
 
 export const DRAFT_TUNING_ID = 'custom-draft'
-
-function defaultTuning(): Tuning {
-  const preset =
-    PRESET_TUNINGS.find((t) => t.id === DEFAULT_TUNING_ID) ?? PRESET_TUNINGS[0]
-  if (!preset) {
-    throw new Error('No preset tunings defined')
-  }
-  return preset
-}
 
 function withEditedString(prev: Tuning, index: number, notePitch: Pitch): Tuning {
   return {
@@ -48,6 +31,20 @@ export interface TunerState {
   editString: (index: number, pitch: Pitch) => void
   saveDraft: (name: string) => void
   deleteCustom: (id: string) => void
+  renameCustom: (id: string, name: string) => void
+}
+
+function computeAnalysis(
+  frequency: number | null,
+  tuning: Tuning,
+  manualStringIndex: number | null,
+): StringAnalysis | null {
+  if (frequency === null) {
+    return null
+  }
+  return manualStringIndex === null
+    ? analyze(frequency, tuning)
+    : analyzeString(frequency, tuning, manualStringIndex)
 }
 
 /** Single source of truth for the tuner screen. */
@@ -56,15 +53,16 @@ export function useTunerState(): TunerState {
   const [customTunings, setCustomTunings] = useState<Tuning[]>(listCustom)
   const [manualStringIndex, setManualStringIndex] = useState<number | null>(null)
   const pitch = usePitch()
+  const { saveDraft, deleteCustom, renameCustom } = useCustomTuningActions(
+    tuning,
+    setTuning,
+    setCustomTunings,
+  )
 
-  const analysis = useMemo(() => {
-    if (pitch.frequency === null) {
-      return null
-    }
-    return manualStringIndex === null
-      ? analyze(pitch.frequency, tuning)
-      : analyzeString(pitch.frequency, tuning, manualStringIndex)
-  }, [pitch.frequency, tuning, manualStringIndex])
+  const analysis = useMemo(
+    () => computeAnalysis(pitch.frequency, tuning, manualStringIndex),
+    [pitch.frequency, tuning, manualStringIndex],
+  )
 
   const selectTuning = useCallback((next: Tuning) => {
     setTuning(next)
@@ -73,21 +71,6 @@ export function useTunerState(): TunerState {
 
   const editString = useCallback((index: number, notePitch: Pitch) => {
     setTuning((prev) => withEditedString(prev, index, notePitch))
-  }, [])
-
-  const saveDraft = useCallback(
-    (name: string) => {
-      const saved: Tuning = { ...tuning, id: `custom-${String(Date.now())}`, name }
-      saveStored(saved)
-      setCustomTunings(listCustom())
-      setTuning(saved)
-    },
-    [tuning],
-  )
-
-  const deleteCustom = useCallback((id: string) => {
-    removeStored(id)
-    setCustomTunings(listCustom())
   }, [])
 
   return {
@@ -101,5 +84,6 @@ export function useTunerState(): TunerState {
     editString,
     saveDraft,
     deleteCustom,
+    renameCustom,
   }
 }
