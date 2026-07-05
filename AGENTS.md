@@ -6,6 +6,7 @@ One TypeScript codebase: Vite + React PWA, wrapped with Capacitor for the app st
 ## Read first
 
 - [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) — architecture, decisions, and the step-by-step development plan. Keep it updated when steps complete or decisions change.
+- [docs/CI.md](docs/CI.md) — CI/CD pipeline: separate GitHub checks and post-deploy UI smoke tests.
 - [.cursor/rules/code-style.md](.cursor/rules/code-style.md) — enforced code-style rules.
 
 ## Hard rules

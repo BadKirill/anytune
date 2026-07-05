@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const liveBaseUrl = process.env.PLAYWRIGHT_BASE_URL
+const isLiveCheck = liveBaseUrl !== undefined && liveBaseUrl !== ''
+
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
@@ -7,7 +10,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: isLiveCheck ? liveBaseUrl : 'http://localhost:5173',
     trace: 'on-first-retry',
   },
   projects: [
@@ -21,9 +24,11 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173/anytune/',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: isLiveCheck
+    ? undefined
+    : {
+        command: 'npm run dev',
+        url: 'http://localhost:5173/anytune/',
+        reuseExistingServer: !process.env.CI,
+      },
 })
