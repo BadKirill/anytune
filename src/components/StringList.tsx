@@ -12,19 +12,19 @@ function stringThickness(pitch: Pitch): number {
 function StringGauge({ pitch, active }: { pitch: Pitch; active: boolean }) {
   const thickness = stringThickness(pitch)
   return (
-    <svg className="string-gauge" viewBox="0 0 280 12" aria-hidden="true">
-      <circle cx="6" cy="6" r="2" fill="currentColor" opacity={active ? 0.9 : 0.5} />
+    <svg className="string-gauge" viewBox="0 0 12 72" aria-hidden="true">
+      <circle cx="6" cy="4" r="1.8" fill="currentColor" opacity={active ? 0.9 : 0.5} />
       <line
         x1="6"
-        y1="6"
-        x2="274"
-        y2="6"
+        y1="4"
+        x2="6"
+        y2="68"
         stroke="currentColor"
         strokeWidth={thickness}
         strokeLinecap="round"
         opacity={active ? 1 : 0.75}
       />
-      <circle cx="274" cy="6" r="2" fill="currentColor" opacity={active ? 0.9 : 0.5} />
+      <circle cx="6" cy="68" r="1.8" fill="currentColor" opacity={active ? 0.9 : 0.5} />
     </svg>
   )
 }
@@ -58,11 +58,9 @@ export function StringList({
     }
   }
 
-  const displayOrder = [...tuning.strings.entries()].reverse()
-
   return (
     <div className="string-list">
-      {displayOrder.map(([index, string]) => {
+      {tuning.strings.map((string, index) => {
         const classes = [
           'string-button',
           index === activeIndex ? 'string-active' : '',
