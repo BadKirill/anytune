@@ -30,17 +30,17 @@ Every new feature, fix, refactor, or doc change gets its **own branch and its ow
 
 Do not introduce libraries, frameworks, or patterns outside this list without an explicit user decision recorded in `docs/DEVELOPMENT_PLAN.md`.
 
-| Layer | Choice |
-| ----- | ------ |
-| App shell | **Vite + React + TypeScript (strict)** |
-| PWA | `vite-plugin-pwa` |
-| Audio capture | **Web Audio API + AudioWorklet** |
-| Pitch detection | **`pitchy`** (McLeod Pitch Method), window 4096–8192 samples |
-| Mobile stores | **Capacitor** (iOS/Android wrappers around the same web build) |
-| Persistence | **`localStorage`** via `src/storage/` — no backend |
-| Unit tests | **Vitest** |
-| E2E tests | **Playwright** (local dev server + live smoke against GitHub Pages) |
-| Lint / format | **ESLint** (`typescript-eslint` strict, `eslint-plugin-sonarjs`) + **Prettier** |
+| Layer           | Choice                                                                          |
+| --------------- | ------------------------------------------------------------------------------- |
+| App shell       | **Vite + React + TypeScript (strict)**                                          |
+| PWA             | `vite-plugin-pwa`                                                               |
+| Audio capture   | **Web Audio API + AudioWorklet**                                                |
+| Pitch detection | **`pitchy`** (McLeod Pitch Method), window 4096–8192 samples                    |
+| Mobile stores   | **Capacitor** (iOS/Android wrappers around the same web build)                  |
+| Persistence     | **`localStorage`** via `src/storage/` — no backend                              |
+| Unit tests      | **Vitest**                                                                      |
+| E2E tests       | **Playwright** (local dev server + live smoke against GitHub Pages)             |
+| Lint / format   | **ESLint** (`typescript-eslint` strict, `eslint-plugin-sonarjs`) + **Prettier** |
 
 **Not in scope:** Redux, Zustand, TanStack Query, backend/API, cloud sync, React Native (unless planned later), alternative pitch libraries, CSS frameworks (Tailwind, MUI, etc.), or test runners other than Vitest/Playwright.
 
@@ -75,10 +75,10 @@ src/storage/        — localStorage persistence
 
 ## Testing
 
-| Command | Purpose |
-| ------- | ------- |
-| `npm run check` | Lint + format check + typecheck + unit tests — run before every PR |
-| `npm run test:e2e` | Full Playwright suite against local dev server |
+| Command                 | Purpose                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| `npm run check`         | Lint + format check + typecheck + unit tests — run before every PR                 |
+| `npm run test:e2e`      | Full Playwright suite against local dev server                                     |
 | `npm run test:e2e:live` | Smoke tests against production (`PLAYWRIGHT_BASE_URL=https://badkirill.github.io`) |
 
 CI runs five separate GitHub checks on every push/PR; deploy to GitHub Pages runs an additional live UI check. See [docs/CI.md](docs/CI.md).

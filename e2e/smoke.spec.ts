@@ -10,7 +10,7 @@ import { APP_URL } from './helpers'
 test.describe('live deploy smoke', () => {
   test('app loads with title, tuning picker, and string buttons', async ({ page }) => {
     await page.goto(APP_URL)
-    await expect(page).toHaveTitle(/anytune/)
+    await expect(page).toHaveTitle(/Anytune/)
     await expect(page.getByRole('button', { name: 'Standard E' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Start tuning' })).toBeVisible()
     await expect(page.getByRole('button', { name: '1 E2' })).toBeVisible()
@@ -25,9 +25,9 @@ test.describe('live deploy smoke', () => {
     await expect(page.getByRole('button', { name: 'Close' })).toBeVisible()
   })
 
-  test('string gauge indicators render above each string box', async ({ page }) => {
+  test('vertical guitar neck renders above string note buttons', async ({ page }) => {
     await page.goto(APP_URL)
-    const gauges = page.locator('.string-gauge')
-    await expect(gauges).toHaveCount(6)
+    await expect(page.locator('.string-neck-svg')).toBeVisible()
+    await expect(page.locator('.string-neck-line')).toHaveCount(6)
   })
 })

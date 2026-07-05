@@ -1,6 +1,6 @@
 /** All user-facing text, centralized for future RU/EN localization. */
 export const UI = {
-  appName: 'anytune',
+  appName: 'Anytune',
   auto: 'Auto',
   startListening: 'Start tuning',
   stopListening: 'Stop',

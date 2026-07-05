@@ -15,14 +15,27 @@ export async function stubMicrophone(page: Page, initialHz: number): Promise<voi
   await page.addInitScript((hz: number) => {
     navigator.mediaDevices.getUserMedia = () => {
       const ctx = new AudioContext()
-      const osc = ctx.createOscillator()
-      osc.frequency.value = hz
-      window.__setTestToneHz = (nextHz: number) => {
-        osc.frequency.setValueAtTime(nextHz, ctx.currentTime)
-      }
       const destination = ctx.createMediaStreamDestination()
-      osc.connect(destination)
-      osc.start()
+
+      const fundamental = ctx.createOscillator()
+      fundamental.frequency.value = hz
+      fundamental.connect(destination)
+
+      const second = ctx.createOscillator()
+      second.frequency.value = hz * 2
+      const secondGain = ctx.createGain()
+      secondGain.gain.value = 0.45
+      second.connect(secondGain)
+      secondGain.connect(destination)
+
+      window.__setTestToneHz = (nextHz: number) => {
+        const now = ctx.currentTime
+        fundamental.frequency.setValueAtTime(nextHz, now)
+        second.frequency.setValueAtTime(nextHz * 2, now)
+      }
+
+      fundamental.start()
+      second.start()
       return Promise.resolve(destination.stream)
     }
   }, initialHz)
