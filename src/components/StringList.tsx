@@ -1,3 +1,4 @@
+import { playReferencePitch } from '../audio/referenceTone'
 import { formatPitch, pitchToMidi, type Pitch } from '../core/music'
 import type { Tuning } from '../core/tunings'
 
@@ -5,93 +6,25 @@ import type { Tuning } from '../core/tunings'
 function stringThickness(pitch: Pitch): number {
   const midi = pitchToMidi(pitch)
   const E4_MIDI = 64
-  return Math.min(5, Math.max(1.2, (E4_MIDI - midi) * 0.12 + 1.2))
+  return Math.min(6.5, Math.max(1, (E4_MIDI - midi) * 0.14 + 1))
 }
 
-const NECK_PADDING_X = 14
-const NECK_PADDING_Y = 10
-const STRING_GAP = 14
-
-function neckHeight(stringCount: number): number {
-  return NECK_PADDING_Y * 2 + (stringCount - 1) * STRING_GAP
-}
-
-function stringY(visualIndex: number): number {
-  return NECK_PADDING_Y + visualIndex * STRING_GAP
-}
-
-function NeckStringLine({
-  pitch,
-  visualIndex,
-  active,
-  lineEnd,
-  sourceIndex,
-}: {
-  pitch: Pitch
-  visualIndex: number
-  active: boolean
-  lineEnd: number
-  sourceIndex: number
-}) {
-  const y = stringY(visualIndex)
+function StringGauge({ pitch, active }: { pitch: Pitch; active: boolean }) {
   const thickness = stringThickness(pitch)
-  const lineClass = active
-    ? 'string-neck-line string-neck-line-active'
-    : 'string-neck-line'
-  const pinClass = active ? 'string-neck-pin string-neck-pin-active' : 'string-neck-pin'
   return (
-    <g key={sourceIndex}>
-      <circle cx={NECK_PADDING_X} cy={y} r="1.6" className={pinClass} />
+    <svg className="string-gauge" viewBox="0 0 280 12" aria-hidden="true">
+      <circle cx="6" cy="6" r="2" fill="currentColor" opacity={active ? 0.9 : 0.5} />
       <line
-        x1={NECK_PADDING_X}
-        y1={y}
-        x2={lineEnd}
-        y2={y}
-        className={lineClass}
+        x1="6"
+        y1="6"
+        x2="274"
+        y2="6"
+        stroke="currentColor"
         strokeWidth={thickness}
         strokeLinecap="round"
+        opacity={active ? 1 : 0.75}
       />
-      <circle cx={lineEnd} cy={y} r="1.6" className={pinClass} />
-    </g>
-  )
-}
-
-function GuitarNeck({
-  strings,
-  activeIndex,
-}: {
-  strings: Tuning['strings']
-  activeIndex: number | null
-}) {
-  const count = strings.length
-  const height = neckHeight(count)
-  const width = 120
-  const lineEnd = width - NECK_PADDING_X
-
-  return (
-    <svg
-      className="string-neck-svg"
-      viewBox={`0 0 ${String(width)} ${String(height)}`}
-      aria-hidden="true"
-    >
-      <rect
-        x="1"
-        y="1"
-        width={width - 2}
-        height={height - 2}
-        rx="10"
-        className="string-neck-board"
-      />
-      {strings.map((string, visualIndex) => (
-        <NeckStringLine
-          key={count - 1 - visualIndex}
-          sourceIndex={count - 1 - visualIndex}
-          pitch={string.pitch}
-          visualIndex={visualIndex}
-          active={count - 1 - visualIndex === activeIndex}
-          lineEnd={lineEnd}
-        />
-      ))}
+      <circle cx="274" cy="6" r="2" fill="currentColor" opacity={active ? 0.9 : 0.5} />
     </svg>
   )
 }
@@ -114,6 +47,10 @@ export function StringList({
   onEdit,
 }: StringListProps) {
   const handleTap = (index: number) => {
+    const string = tuning.strings[index]
+    if (string) {
+      playReferencePitch(string.pitch)
+    }
     if (manualIndex === index) {
       onEdit(index)
     } else {
@@ -124,20 +61,19 @@ export function StringList({
   const displayOrder = [...tuning.strings.entries()].reverse()
 
   return (
-    <div className="string-neck">
-      <GuitarNeck strings={tuning.strings} activeIndex={activeIndex} />
-      <div className="string-neck-notes">
-        {displayOrder.map(([index, string]) => {
-          const classes = [
-            'string-button',
-            index === activeIndex ? 'string-active' : '',
-            index === manualIndex ? 'string-manual' : '',
-          ]
-            .filter(Boolean)
-            .join(' ')
-          return (
+    <div className="string-list">
+      {displayOrder.map(([index, string]) => {
+        const classes = [
+          'string-button',
+          index === activeIndex ? 'string-active' : '',
+          index === manualIndex ? 'string-manual' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')
+        return (
+          <div key={index} className="string-item">
+            <StringGauge pitch={string.pitch} active={index === activeIndex} />
             <button
-              key={index}
               type="button"
               className={classes}
               onClick={() => {
@@ -147,9 +83,9 @@ export function StringList({
               <span className="string-number">{index + 1}</span>
               <span className="string-note">{formatPitch(string.pitch)}</span>
             </button>
-          )
-        })}
-      </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
