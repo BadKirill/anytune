@@ -123,7 +123,7 @@
 
 .string-gauge {
   width: 52px;
-  height: 10px;
+  height: 12px;
   color: #b9c6bf;
 }
 
@@ -165,6 +165,25 @@
   border-radius: 999px;
   padding: 12px 24px;
   font-weight: 600;
+  transition:
+    filter 80ms ease,
+    transform 80ms ease;
+}
+
+.button-full {
+  width: 100%;
+}
+
+.button-primary:active:not(:disabled),
+.button-secondary:active:not(:disabled),
+.button-danger:active:not(:disabled),
+.chip:active,
+.string-button:active,
+.list-row:active,
+.tuning-picker-button:active,
+.input-field-clear:active {
+  filter: brightness(0.82);
+  transform: scale(0.97);
 }
 
 .button-primary {
@@ -210,15 +229,37 @@
 .sheet {
   width: min(100%, 480px);
   max-height: 85dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  overflow: hidden;
+}
+
+.sheet-scroll {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  background: var(--surface);
-  border-radius: 24px 24px 0 0;
-  padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+  padding: 24px 20px 8px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.sheet-scroll::after {
+  content: '';
+  display: block;
+  height: 8px;
+  flex-shrink: 0;
+}
+
+.sheet-footer {
+  flex-shrink: 0;
+  padding: 16px 20px calc(32px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--gauge-arc);
+  background: var(--surface);
 }
 
 .sheet h3 {
@@ -231,9 +272,126 @@
 
 .sheet-actions {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
   gap: 12px;
   margin-top: 8px;
+}
+
+/* Shared list rows and inputs */
+
+.list-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  background: var(--surface-raised);
+  border-radius: 14px;
+  padding: 14px 16px;
+  text-align: left;
+  transition:
+    filter 80ms ease,
+    transform 80ms ease;
+}
+
+.list-row-title {
+  font-weight: 600;
+}
+
+.list-row-subtitle {
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.input-field {
+  position: relative;
+  width: 100%;
+}
+
+.input-field-control {
+  width: 100%;
+  height: 48px;
+  background: var(--surface-raised);
+  border: 1px solid var(--gauge-arc);
+  border-radius: 14px;
+  padding: 0 44px 0 16px;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.input-field-control::placeholder {
+  color: var(--muted);
+}
+
+.input-field-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+/* Swipeable custom tuning rows */
+
+.swipe-row {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.swipe-action {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  z-index: 0;
+  transition:
+    filter 80ms ease,
+    transform 80ms ease;
+}
+
+.swipe-action:active {
+  filter: brightness(0.82);
+  transform: scale(0.97);
+}
+
+.swipe-action-edit {
+  left: 0;
+  background: #1a4d38;
+  color: var(--accent);
+}
+
+.swipe-action-delete {
+  right: 0;
+  background: #4a1f1f;
+  color: var(--danger);
+}
+
+.swipe-row-content {
+  position: relative;
+  z-index: 1;
+  transition: transform 120ms ease-out;
+  background: var(--surface);
+  pointer-events: none;
+}
+
+.swipe-row-content .list-row {
+  pointer-events: auto;
+  border-radius: 14px;
 }
 
 /* Note picker */
@@ -242,50 +400,4 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-/* Preset picker */
-
-.tuning-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tuning-row-main {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-  background: var(--surface-raised);
-  border-radius: 14px;
-  padding: 12px 16px;
-  text-align: left;
-}
-
-.tuning-name {
-  font-weight: 600;
-}
-
-.tuning-notes {
-  color: var(--muted);
-  font-size: 0.85rem;
-  white-space: nowrap;
-}
-
-/* Save form */
-
-.save-form {
-  display: flex;
-  gap: 8px;
-}
-
-.save-form input {
-  flex: 1;
-  background: var(--surface-raised);
-  border: 1px solid var(--gauge-arc);
-  border-radius: 12px;
-  padding: 10px 14px;
-  color: var(--text);
 }
