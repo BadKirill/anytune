@@ -52,12 +52,17 @@ function SaveDraftField({ onSave }: { onSave: (name: string) => void }) {
   }
 
   return (
-    <TextField
-      value={name}
-      placeholder={UI.namePlaceholder}
-      onChange={setName}
-      onSubmit={submit}
-    />
+    <div className="save-draft-row">
+      <TextField
+        value={name}
+        placeholder={UI.namePlaceholder}
+        onChange={setName}
+        onSubmit={submit}
+      />
+      <button type="button" className="button-primary" onClick={submit}>
+        {UI.save}
+      </button>
+    </div>
   )
 }
 
@@ -77,7 +82,12 @@ export function PresetPicker({
   return (
     <Sheet onClose={onClose} tall>
       <h2>{UI.tunings}</h2>
-      {canSaveDraft && <SaveDraftField onSave={onSaveDraft} />}
+      {canSaveDraft && (
+        <>
+          <h3>{UI.saveCurrent}</h3>
+          <SaveDraftField onSave={onSaveDraft} />
+        </>
+      )}
       <h3>{UI.guitar}</h3>
       {presetsFor('guitar').map((tuning) => (
         <PresetRow key={tuning.id} tuning={tuning} onSelect={onSelect} />

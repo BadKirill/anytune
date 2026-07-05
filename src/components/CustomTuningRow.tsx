@@ -27,12 +27,17 @@ export function CustomTuningRow({
 }: CustomTuningRowProps) {
   if (editing) {
     return (
-      <TextField
-        value={editName}
-        placeholder={UI.namePlaceholder}
-        onChange={onEditNameChange}
-        onSubmit={onSubmitEdit}
-      />
+      <div className="save-draft-row">
+        <TextField
+          value={editName}
+          placeholder={UI.namePlaceholder}
+          onChange={onEditNameChange}
+          onSubmit={onSubmitEdit}
+        />
+        <button type="button" className="button-primary" onClick={onSubmitEdit}>
+          {UI.save}
+        </button>
+      </div>
     )
   }
 

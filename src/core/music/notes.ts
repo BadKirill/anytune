@@ -47,3 +47,8 @@ export function midiToPitch(midi: number): Pitch {
 export function formatPitch(pitch: Pitch): string {
   return `${pitch.note}${String(pitch.octave)}`
 }
+
+/** True when two pitches name the same note. */
+export function pitchesEqual(a: Pitch, b: Pitch): boolean {
+  return a.note === b.note && a.octave === b.octave
+}

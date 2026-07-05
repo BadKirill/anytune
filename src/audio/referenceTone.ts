@@ -1,7 +1,9 @@
-import { normalizePluck, synthesizePluck } from '../core/signal/pluckedTone'
 import { pitchToFrequency, type Pitch } from '../core/music'
+import { normalizePluck, synthesizePluck } from '../core/signal/pluckedTone'
+import { suppressPitchDetection } from './pitchGate'
 
-const NOTE_DURATION_S = 1.8
+const NOTE_DURATION_S = 1.6
+const SUPPRESS_MS = NOTE_DURATION_S * 1000 + 250
 
 let context: AudioContext | null = null
 let stopTimer: ReturnType<typeof setTimeout> | null = null
@@ -36,19 +38,36 @@ function pluckBuffer(ctx: AudioContext, frequency: number): AudioBuffer {
   return buffer
 }
 
-function bodyFilter(ctx: AudioContext, source: AudioNode): AudioNode {
-  const filter = ctx.createBiquadFilter()
-  filter.type = 'lowpass'
-  filter.frequency.value = 2800
-  filter.Q.value = 0.6
-  source.connect(filter)
-  track(filter)
-  return filter
+function guitarChain(ctx: AudioContext, source: AudioNode, frequency: number): AudioNode {
+  const highPass = ctx.createBiquadFilter()
+  highPass.type = 'highpass'
+  highPass.frequency.value = 70
+  source.connect(highPass)
+  track(highPass)
+
+  const body = ctx.createBiquadFilter()
+  body.type = 'peaking'
+  body.frequency.value = Math.min(220, frequency * 1.5)
+  body.Q.value = 0.9
+  body.gain.value = 4
+  highPass.connect(body)
+  track(body)
+
+  const lowPass = ctx.createBiquadFilter()
+  lowPass.type = 'lowpass'
+  lowPass.frequency.value = 1900
+  lowPass.Q.value = 0.5
+  body.connect(lowPass)
+  track(lowPass)
+
+  return lowPass
 }
 
 /** Plays a short plucked-string reference tone for ear comparison. */
 export function playReferencePitch(pitch: Pitch): void {
   clearPlayback()
+  suppressPitchDetection(SUPPRESS_MS)
+
   const ctx = getContext()
   void ctx.resume()
 
@@ -57,12 +76,12 @@ export function playReferencePitch(pitch: Pitch): void {
   source.buffer = pluckBuffer(ctx, frequency)
 
   const output = ctx.createGain()
-  output.gain.setValueAtTime(0.55, ctx.currentTime)
+  output.gain.setValueAtTime(0.5, ctx.currentTime)
   output.connect(ctx.destination)
   track(source, output)
 
-  const filtered = bodyFilter(ctx, source)
-  filtered.connect(output)
+  const chain = guitarChain(ctx, source, frequency)
+  chain.connect(output)
   source.start()
 
   stopTimer = setTimeout(clearPlayback, NOTE_DURATION_S * 1000 + 80)

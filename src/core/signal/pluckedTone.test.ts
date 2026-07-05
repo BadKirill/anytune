@@ -19,7 +19,7 @@ describe('pluckedTone', () => {
     expect(samples.length).toBe(Math.floor(SAMPLE_RATE * 1.5))
     expect(rms(samples, 0, 400)).toBeGreaterThan(0.05)
     expect(rms(samples, samples.length - 400, samples.length)).toBeLessThan(
-      rms(samples, 0, 400) * 0.35,
+      rms(samples, 0, 400) * 0.5,
     )
   })
 

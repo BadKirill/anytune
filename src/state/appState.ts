@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 
 import { usePitch } from '../audio/usePitch'
-import type { Pitch } from '../core/music'
+import { pitchesEqual, type Pitch } from '../core/music'
 import { analyze, analyzeString, type StringAnalysis, type Tuning } from '../core/tunings'
 import { listCustom } from '../storage/tuningStore'
 
@@ -11,6 +11,10 @@ import { useCustomTuningActions } from './useCustomTuningActions'
 export const DRAFT_TUNING_ID = 'custom-draft'
 
 function withEditedString(prev: Tuning, index: number, notePitch: Pitch): Tuning {
+  const current = prev.strings[index]?.pitch
+  if (current && pitchesEqual(current, notePitch)) {
+    return prev
+  }
   return {
     ...prev,
     id: DRAFT_TUNING_ID,
