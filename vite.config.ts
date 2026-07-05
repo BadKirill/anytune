@@ -16,6 +16,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
+        id: '/anytune/',
         name: 'Anytune — custom guitar & bass tuner',
         short_name: 'Anytune',
         description:

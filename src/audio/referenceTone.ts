@@ -1,6 +1,7 @@
+import { normalizePluck, synthesizePluck } from '../core/signal/pluckedTone'
 import { pitchToFrequency, type Pitch } from '../core/music'
 
-const NOTE_DURATION_S = 1.4
+const NOTE_DURATION_S = 1.8
 
 let context: AudioContext | null = null
 let stopTimer: ReturnType<typeof setTimeout> | null = null
@@ -22,39 +23,47 @@ function clearPlayback(): void {
   nodes = []
 }
 
-function addOscillator(
-  ctx: AudioContext,
-  frequency: number,
-  outputGain: number,
-  destination: GainNode,
-): void {
-  const osc = ctx.createOscillator()
-  osc.type = 'triangle'
-  osc.frequency.value = frequency
-  const level = ctx.createGain()
-  level.gain.value = outputGain
-  osc.connect(level)
-  level.connect(destination)
-  osc.start()
-  osc.stop(ctx.currentTime + NOTE_DURATION_S)
-  nodes.push(osc, level)
+function track(...added: AudioNode[]): void {
+  nodes.push(...added)
 }
 
-/** Plays a short reference tone so the player can compare against the target string. */
+function pluckBuffer(ctx: AudioContext, frequency: number): AudioBuffer {
+  const samples = normalizePluck(
+    synthesizePluck(frequency, ctx.sampleRate, NOTE_DURATION_S),
+  )
+  const buffer = ctx.createBuffer(1, samples.length, ctx.sampleRate)
+  buffer.copyToChannel(samples, 0)
+  return buffer
+}
+
+function bodyFilter(ctx: AudioContext, source: AudioNode): AudioNode {
+  const filter = ctx.createBiquadFilter()
+  filter.type = 'lowpass'
+  filter.frequency.value = 2800
+  filter.Q.value = 0.6
+  source.connect(filter)
+  track(filter)
+  return filter
+}
+
+/** Plays a short plucked-string reference tone for ear comparison. */
 export function playReferencePitch(pitch: Pitch): void {
   clearPlayback()
   const ctx = getContext()
   void ctx.resume()
 
-  const gain = ctx.createGain()
-  gain.gain.setValueAtTime(0.3, ctx.currentTime)
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + NOTE_DURATION_S)
-  gain.connect(ctx.destination)
-  nodes.push(gain)
-
   const frequency = pitchToFrequency(pitch)
-  addOscillator(ctx, frequency, 1, gain)
-  addOscillator(ctx, frequency * 2, 0.15, gain)
+  const source = ctx.createBufferSource()
+  source.buffer = pluckBuffer(ctx, frequency)
 
-  stopTimer = setTimeout(clearPlayback, NOTE_DURATION_S * 1000 + 50)
+  const output = ctx.createGain()
+  output.gain.setValueAtTime(0.55, ctx.currentTime)
+  output.connect(ctx.destination)
+  track(source, output)
+
+  const filtered = bodyFilter(ctx, source)
+  filtered.connect(output)
+  source.start()
+
+  stopTimer = setTimeout(clearPlayback, NOTE_DURATION_S * 1000 + 80)
 }
