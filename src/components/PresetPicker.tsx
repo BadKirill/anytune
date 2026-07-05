@@ -2,6 +2,9 @@ import { useState } from 'react'
 
 import { formatPitch } from '../core/music'
 import { PRESET_TUNINGS, type Instrument, type Tuning } from '../core/tunings'
+import { CustomTuningList } from './CustomTuningList'
+import { Sheet } from './Sheet'
+import { TextField } from './TextField'
 import { UI } from './strings'
 
 interface PresetPickerProps {
@@ -10,72 +13,51 @@ interface PresetPickerProps {
   onSelect: (tuning: Tuning) => void
   onSaveDraft: (name: string) => void
   onDeleteCustom: (id: string) => void
+  onRenameCustom: (id: string, name: string) => void
   onClose: () => void
 }
 
-function tuningSummary(tuning: Tuning): string {
-  return tuning.strings.map((s) => formatPitch(s.pitch)).join(' ')
-}
-
-function TuningRow({
+function PresetRow({
   tuning,
   onSelect,
-  onDelete,
 }: {
   tuning: Tuning
   onSelect: (tuning: Tuning) => void
-  onDelete?: (id: string) => void
 }) {
   return (
-    <div className="tuning-row">
-      <button
-        type="button"
-        className="tuning-row-main"
-        onClick={() => {
-          onSelect(tuning)
-        }}
-      >
-        <span className="tuning-name">{tuning.name}</span>
-        <span className="tuning-notes">{tuningSummary(tuning)}</span>
-      </button>
-      {onDelete && (
-        <button
-          type="button"
-          className="button-danger"
-          onClick={() => {
-            onDelete(tuning.id)
-          }}
-        >
-          {UI.delete}
-        </button>
-      )}
-    </div>
+    <button
+      type="button"
+      className="list-row"
+      onClick={() => {
+        onSelect(tuning)
+      }}
+    >
+      <span className="list-row-title">{tuning.name}</span>
+      <span className="list-row-subtitle">
+        {tuning.strings.map((s) => formatPitch(s.pitch)).join(' ')}
+      </span>
+    </button>
   )
 }
 
-function SaveDraftForm({ onSave }: { onSave: (name: string) => void }) {
+function SaveDraftField({ onSave }: { onSave: (name: string) => void }) {
   const [name, setName] = useState('')
+
+  const submit = () => {
+    const trimmed = name.trim()
+    if (trimmed !== '') {
+      onSave(trimmed)
+      setName('')
+    }
+  }
+
   return (
-    <div className="save-form">
-      <input
-        type="text"
-        value={name}
-        placeholder={UI.namePlaceholder}
-        onChange={(event) => {
-          setName(event.target.value)
-        }}
-      />
-      <button
-        type="button"
-        className="button-primary"
-        disabled={name.trim() === ''}
-        onClick={() => {
-          onSave(name.trim())
-        }}
-      >
-        {UI.save}
-      </button>
-    </div>
+    <TextField
+      value={name}
+      placeholder={UI.namePlaceholder}
+      onChange={setName}
+      onSubmit={submit}
+    />
   )
 }
 
@@ -89,41 +71,27 @@ export function PresetPicker({
   onSelect,
   onSaveDraft,
   onDeleteCustom,
+  onRenameCustom,
   onClose,
 }: PresetPickerProps) {
   return (
-    <div className="overlay" onClick={onClose}>
-      <div
-        className="sheet sheet-tall"
-        onClick={(event) => {
-          event.stopPropagation()
-        }}
-      >
-        <h2>{UI.tunings}</h2>
-        {canSaveDraft && <SaveDraftForm onSave={onSaveDraft} />}
-        <h3>{UI.guitar}</h3>
-        {presetsFor('guitar').map((tuning) => (
-          <TuningRow key={tuning.id} tuning={tuning} onSelect={onSelect} />
-        ))}
-        <h3>{UI.bass}</h3>
-        {presetsFor('bass').map((tuning) => (
-          <TuningRow key={tuning.id} tuning={tuning} onSelect={onSelect} />
-        ))}
-        {customTunings.length > 0 && <h3>{UI.myTunings}</h3>}
-        {customTunings.map((tuning) => (
-          <TuningRow
-            key={tuning.id}
-            tuning={tuning}
-            onSelect={onSelect}
-            onDelete={onDeleteCustom}
-          />
-        ))}
-        <div className="sheet-actions">
-          <button type="button" className="button-secondary" onClick={onClose}>
-            {UI.close}
-          </button>
-        </div>
-      </div>
-    </div>
+    <Sheet onClose={onClose} tall>
+      <h2>{UI.tunings}</h2>
+      {canSaveDraft && <SaveDraftField onSave={onSaveDraft} />}
+      <h3>{UI.guitar}</h3>
+      {presetsFor('guitar').map((tuning) => (
+        <PresetRow key={tuning.id} tuning={tuning} onSelect={onSelect} />
+      ))}
+      <h3>{UI.bass}</h3>
+      {presetsFor('bass').map((tuning) => (
+        <PresetRow key={tuning.id} tuning={tuning} onSelect={onSelect} />
+      ))}
+      <CustomTuningList
+        tunings={customTunings}
+        onSelect={onSelect}
+        onDelete={onDeleteCustom}
+        onRename={onRenameCustom}
+      />
+    </Sheet>
   )
 }
