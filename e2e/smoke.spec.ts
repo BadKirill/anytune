@@ -20,7 +20,9 @@ test.describe('live deploy smoke', () => {
   test('tuning picker opens and lists presets', async ({ page }) => {
     await page.goto(APP_URL)
     await page.getByRole('button', { name: 'Standard E' }).click()
-    await expect(page.getByRole('heading', { name: 'Tunings', exact: true })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Tunings', exact: true }),
+    ).toBeVisible()
     await expect(page.getByRole('button', { name: /^Drop D D2/ })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Close' })).toBeVisible()
   })
