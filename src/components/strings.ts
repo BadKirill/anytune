@@ -19,7 +19,7 @@ export const UI = {
   guitar: 'Guitar',
   bass: 'Bass',
   myTunings: 'My tunings',
-  noCustomTunings: 'No saved tunings yet — edit a string, then save below.',
+  noCustomTunings: 'No saved tunings yet — edit a string, name it, then tap Save above.',
   saveCurrent: 'Save current tuning',
   saveHint: 'Name your tuning, then tap Save to add it under My tunings.',
   namePlaceholder: 'Tuning name',

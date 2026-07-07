@@ -96,6 +96,12 @@ export function PresetPicker({
           <SaveDraftField onSave={onSaveDraft} />
         </>
       )}
+      <CustomTuningList
+        tunings={customTunings}
+        onSelect={onSelect}
+        onDelete={onDeleteCustom}
+        onRename={onRenameCustom}
+      />
       <h3>{UI.guitar}</h3>
       {presetsFor('guitar').map((tuning) => (
         <PresetRow key={tuning.id} tuning={tuning} onSelect={onSelect} />
@@ -104,12 +110,6 @@ export function PresetPicker({
       {presetsFor('bass').map((tuning) => (
         <PresetRow key={tuning.id} tuning={tuning} onSelect={onSelect} />
       ))}
-      <CustomTuningList
-        tunings={customTunings}
-        onSelect={onSelect}
-        onDelete={onDeleteCustom}
-        onRename={onRenameCustom}
-      />
     </Sheet>
   )
 }

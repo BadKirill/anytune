@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Tuning } from '../core/tunings'
+import { isSavedCustomTuning, PRESET_TUNINGS, type Tuning } from '../core/tunings'
 
-import { DRAFT_TUNING_ID } from './appState'
 import {
   customTuningsForMenu,
-  isSavedCustomTuning,
+  mergeStoredCustomTunings,
   upsertCustomTuning,
 } from './customTunings'
 
@@ -16,25 +15,31 @@ const SAVED: Tuning = {
   strings: [{ pitch: { note: 'E', octave: 2 } }],
 }
 
-const DRAFT: Tuning = {
-  id: DRAFT_TUNING_ID,
-  name: 'Custom',
-  instrument: 'guitar',
-  strings: [{ pitch: { note: 'E', octave: 2 } }],
-}
-
 describe('customTunings', () => {
-  it('recognises saved custom tunings', () => {
-    expect(isSavedCustomTuning(SAVED)).toBe(true)
-    expect(isSavedCustomTuning(DRAFT)).toBe(false)
-  })
-
   it('adds the active saved tuning when the list is stale', () => {
     expect(customTuningsForMenu([], SAVED)).toEqual([SAVED])
+  })
+
+  it('keeps in-memory tunings when storage is empty', () => {
+    expect(mergeStoredCustomTunings([], [SAVED])).toEqual([SAVED])
   })
 
   it('upserts by id', () => {
     const renamed = { ...SAVED, name: 'Renamed' }
     expect(upsertCustomTuning([SAVED], renamed)).toEqual([renamed])
+  })
+
+  it('includes any non-preset active tuning', () => {
+    expect(
+      customTuningsForMenu([], {
+        ...SAVED,
+        id: 'user-tuning-99',
+        name: 'Test 28383',
+      }),
+    ).toHaveLength(1)
+    const preset = PRESET_TUNINGS[0]
+    if (preset) {
+      expect(isSavedCustomTuning(preset)).toBe(false)
+    }
   })
 })
