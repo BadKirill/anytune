@@ -22,20 +22,29 @@ function load(): StoredTunings {
   }
 }
 
-function persist(data: StoredTunings): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+function persist(data: StoredTunings): boolean {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    return true
+  } catch {
+    return false
+  }
+}
+
+function isStoredCustomTuning(tuning: Tuning): boolean {
+  return tuning.id.startsWith('custom-') && tuning.id !== 'custom-draft'
 }
 
 /** Lists user-saved custom tunings. */
 export function listCustom(): Tuning[] {
-  return load().tunings
+  return load().tunings.filter(isStoredCustomTuning)
 }
 
 /** Saves a custom tuning, replacing any existing one with the same id. */
-export function save(tuning: Tuning): void {
+export function save(tuning: Tuning): boolean {
   const data = load()
   data.tunings = [...data.tunings.filter((t) => t.id !== tuning.id), tuning]
-  persist(data)
+  return persist(data)
 }
 
 /** Removes a custom tuning by id. */

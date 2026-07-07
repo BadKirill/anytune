@@ -7,6 +7,7 @@ import {
   save as saveStored,
 } from '../storage/tuningStore'
 
+import { upsertCustomTuning } from './customTunings'
 import { defaultTuning } from './tuningDefaults'
 
 interface CustomTuningActions {
@@ -18,13 +19,13 @@ interface CustomTuningActions {
 export function useCustomTuningActions(
   tuning: Tuning,
   setTuning: (value: Tuning | ((prev: Tuning) => Tuning)) => void,
-  setCustomTunings: (value: Tuning[]) => void,
+  setCustomTunings: (value: Tuning[] | ((prev: Tuning[]) => Tuning[])) => void,
 ): CustomTuningActions {
   const saveDraft = useCallback(
     (name: string) => {
       const saved: Tuning = { ...tuning, id: `custom-${String(Date.now())}`, name }
       saveStored(saved)
-      setCustomTunings(listCustom())
+      setCustomTunings((prev) => upsertCustomTuning(prev, saved))
       setTuning(saved)
     },
     [tuning, setTuning, setCustomTunings],
@@ -47,7 +48,7 @@ export function useCustomTuningActions(
       }
       const updated: Tuning = { ...existing, name }
       saveStored(updated)
-      setCustomTunings(listCustom())
+      setCustomTunings((prev) => upsertCustomTuning(prev, updated))
       setTuning((prev) => (prev.id === id ? updated : prev))
     },
     [setTuning, setCustomTunings],

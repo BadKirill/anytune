@@ -36,6 +36,7 @@ export interface TunerState {
   saveDraft: (name: string) => void
   deleteCustom: (id: string) => void
   renameCustom: (id: string, name: string) => void
+  refreshCustomTunings: () => void
 }
 
 function computeAnalysis(
@@ -77,6 +78,10 @@ export function useTunerState(): TunerState {
     setTuning((prev) => withEditedString(prev, index, notePitch))
   }, [])
 
+  const refreshCustomTunings = useCallback(() => {
+    setCustomTunings(listCustom())
+  }, [])
+
   return {
     tuning,
     customTunings,
@@ -89,5 +94,6 @@ export function useTunerState(): TunerState {
     saveDraft,
     deleteCustom,
     renameCustom,
+    refreshCustomTunings,
   }
 }

@@ -306,10 +306,27 @@
   width: 100%;
 }
 
-.save-draft-row {
+.save-draft-block {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+
+.save-draft-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
   gap: 10px;
+}
+
+.save-draft-row .input-field {
+  flex: 1;
+}
+
+.save-draft-button {
+  flex-shrink: 0;
+  min-width: 88px;
+  padding-inline: 20px;
 }
 
 .input-field-control {
