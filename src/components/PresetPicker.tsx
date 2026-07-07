@@ -52,16 +52,24 @@ function SaveDraftField({ onSave }: { onSave: (name: string) => void }) {
   }
 
   return (
-    <div className="save-draft-row">
-      <TextField
-        value={name}
-        placeholder={UI.namePlaceholder}
-        onChange={setName}
-        onSubmit={submit}
-      />
-      <button type="button" className="button-primary" onClick={submit}>
-        {UI.save}
-      </button>
+    <div className="save-draft-block">
+      <p className="hint hint-muted">{UI.saveHint}</p>
+      <div className="save-draft-row">
+        <TextField
+          value={name}
+          placeholder={UI.namePlaceholder}
+          onChange={setName}
+          onSubmit={submit}
+        />
+        <button
+          type="button"
+          className="button-primary save-draft-button"
+          aria-label={UI.save}
+          onClick={submit}
+        >
+          {UI.save}
+        </button>
+      </div>
     </div>
   )
 }
