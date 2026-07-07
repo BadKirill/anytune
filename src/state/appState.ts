@@ -5,6 +5,7 @@ import { pitchesEqual, type Pitch } from '../core/music'
 import { analyze, analyzeString, type StringAnalysis, type Tuning } from '../core/tunings'
 import { listCustom } from '../storage/tuningStore'
 
+import { mergeStoredCustomTunings } from './customTunings'
 import { defaultTuning } from './tuningDefaults'
 import { useCustomTuningActions } from './useCustomTuningActions'
 
@@ -79,7 +80,7 @@ export function useTunerState(): TunerState {
   }, [])
 
   const refreshCustomTunings = useCallback(() => {
-    setCustomTunings(listCustom())
+    setCustomTunings((prev) => mergeStoredCustomTunings(listCustom(), prev))
   }, [])
 
   return {

@@ -62,4 +62,21 @@ describe('tuningStore', () => {
     localStorage.setItem('anytune.customTunings', 'not json {')
     expect(listCustom()).toEqual([])
   })
+
+  it('loads legacy array-only storage', () => {
+    localStorage.setItem('anytune.customTunings', JSON.stringify([TUNING]))
+    expect(listCustom()).toEqual([TUNING])
+  })
+
+  it('does not save built-in presets as custom tunings', () => {
+    expect(
+      save({
+        id: 'guitar-standard',
+        name: 'Test',
+        instrument: 'guitar',
+        strings: TUNING.strings,
+      }),
+    ).toBe(false)
+    expect(listCustom()).toEqual([])
+  })
 })
