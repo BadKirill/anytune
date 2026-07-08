@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import { APP_URL, stubMicrophone } from './helpers'
+import { APP_URL, clearTuningStorage, stubMicrophone } from './helpers'
 
 const G_SHARP_1_HZ = 51.91
 
@@ -18,7 +18,7 @@ async function saveCustomTuning(page: import('@playwright/test').Page, name: str
   const input = page.getByRole('textbox', { name: 'Tuning name' })
   await input.fill(name)
   await page.getByRole('button', { name: 'Save', exact: true }).click()
-  await expect(page.locator('.list-row', { hasText: name })).toBeVisible()
+  await expect(page.getByRole('button', { name: new RegExp(`${name} G#1`) })).toBeVisible()
 }
 
 async function swipeDeleteCustom(page: import('@playwright/test').Page, name: string) {
@@ -36,6 +36,8 @@ test('editing a string note creates a custom tuning and tunes against it', async
 }) => {
   await stubMicrophone(page, G_SHARP_1_HZ)
   await page.goto(APP_URL)
+  await clearTuningStorage(page)
+  await page.reload()
 
   await editStringToGSharp1(page)
 
@@ -51,12 +53,14 @@ test('saved custom tunings persist, rename on swipe, and delete resets header', 
 }) => {
   await stubMicrophone(page, G_SHARP_1_HZ)
   await page.goto(APP_URL)
+  await clearTuningStorage(page)
+  await page.reload()
 
   await editStringToGSharp1(page)
   await saveCustomTuning(page, 'Demiurge')
 
   await page.reload()
-  await page.getByRole('button', { name: 'Standard E' }).click()
+  await page.getByRole('button', { name: 'Demiurge' }).click()
   const demiurgeRow = page.getByRole('button', { name: /Demiurge G#1/ })
   await demiurgeRow.scrollIntoViewIfNeeded()
   await demiurgeRow.evaluate((el) => {

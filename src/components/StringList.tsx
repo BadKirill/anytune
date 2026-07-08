@@ -1,4 +1,4 @@
-import { playReferencePitch } from '../audio/referenceTone'
+import { playReferencePitch, warmReferenceAudio } from '../audio/referenceTone'
 import { formatPitch, pitchToMidi, type Pitch } from '../core/music'
 import type { Tuning } from '../core/tunings'
 
@@ -49,7 +49,7 @@ export function StringList({
   const handleTap = (index: number) => {
     const string = tuning.strings[index]
     if (string) {
-      playReferencePitch(string.pitch)
+      void warmReferenceAudio().then(() => playReferencePitch(string.pitch))
     }
     if (manualIndex === index) {
       onEdit(index)

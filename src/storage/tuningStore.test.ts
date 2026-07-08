@@ -1,7 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Tuning } from '../core/tunings'
-import { listCustom, remove, save } from './tuningStore'
+import {
+  listCustom,
+  loadLastActiveTuning,
+  persistLastActiveTuning,
+  remove,
+  save,
+} from './tuningStore'
 
 function memoryStorage(): Storage {
   const data = new Map<string, string>()
@@ -34,6 +40,7 @@ const TUNING: Tuning = {
 describe('tuningStore', () => {
   beforeEach(() => {
     vi.stubGlobal('localStorage', memoryStorage())
+    vi.stubGlobal('sessionStorage', memoryStorage())
   })
 
   it('starts empty', () => {
@@ -78,5 +85,19 @@ describe('tuningStore', () => {
       }),
     ).toBe(false)
     expect(listCustom()).toEqual([])
+  })
+
+  it('restores the last active custom tuning', () => {
+    save(TUNING)
+    persistLastActiveTuning(TUNING)
+    expect(loadLastActiveTuning()).toEqual(TUNING)
+  })
+
+  it('falls back to session storage when local storage is empty', () => {
+    sessionStorage.setItem(
+      'anytune.customTunings.session',
+      JSON.stringify({ v: 1, tunings: [TUNING] }),
+    )
+    expect(listCustom()).toEqual([TUNING])
   })
 })
