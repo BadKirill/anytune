@@ -1,8 +1,10 @@
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 
 import type { Tuning } from '../core/tunings'
+import { isSavedCustomTuning } from '../core/tunings'
 import {
   listCustom,
+  persistLastActiveTuning,
   remove as removeStored,
   save as saveStored,
 } from '../storage/tuningStore'
@@ -17,24 +19,34 @@ interface CustomTuningActions {
 }
 
 export function useCustomTuningActions(
-  tuning: Tuning,
   setTuning: (value: Tuning | ((prev: Tuning) => Tuning)) => void,
   setCustomTunings: (value: Tuning[] | ((prev: Tuning[]) => Tuning[])) => void,
 ): CustomTuningActions {
+  const pendingSaveRef = useRef<Tuning | null>(null)
+
   const saveDraft = useCallback(
     (name: string) => {
-      const saved: Tuning = { ...tuning, id: `custom-${String(Date.now())}`, name }
-      saveStored(saved)
-      setCustomTunings((prev) => upsertCustomTuning(prev, saved))
-      setTuning(saved)
+      setTuning((prev) => {
+        const pending = pendingSaveRef.current
+        if (pending?.name === name && isSavedCustomTuning(pending)) {
+          return pending
+        }
+        const saved: Tuning = { ...prev, id: `custom-${String(Date.now())}`, name }
+        pendingSaveRef.current = saved
+        saveStored(saved)
+        persistLastActiveTuning(saved)
+        setCustomTunings((list) => upsertCustomTuning(list, saved))
+        return saved
+      })
     },
-    [tuning, setTuning, setCustomTunings],
+    [setTuning, setCustomTunings],
   )
 
   const deleteCustom = useCallback(
     (id: string) => {
       removeStored(id)
       setCustomTunings(listCustom())
+      pendingSaveRef.current = null
       setTuning((prev) => (prev.id === id ? defaultTuning() : prev))
     },
     [setTuning, setCustomTunings],
@@ -48,8 +60,12 @@ export function useCustomTuningActions(
       }
       const updated: Tuning = { ...existing, name }
       saveStored(updated)
+      persistLastActiveTuning(updated)
       setCustomTunings((prev) => upsertCustomTuning(prev, updated))
       setTuning((prev) => (prev.id === id ? updated : prev))
+      if (pendingSaveRef.current?.id === id) {
+        pendingSaveRef.current = updated
+      }
     },
     [setTuning, setCustomTunings],
   )

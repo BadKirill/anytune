@@ -2,12 +2,14 @@ import { pitchToFrequency, type Pitch } from '../core/music'
 import { normalizePluck, synthesizePluck } from '../core/signal/pluckedTone'
 import { suppressPitchDetection } from './pitchGate'
 
-const NOTE_DURATION_S = 1.6
-const SUPPRESS_MS = NOTE_DURATION_S * 1000 + 250
+const NOTE_DURATION_S = 1.4
+const SUPPRESS_MS = NOTE_DURATION_S * 1000 + 300
+const OUTPUT_GAIN = 0.88
 
 let context: AudioContext | null = null
 let stopTimer: ReturnType<typeof setTimeout> | null = null
 let nodes: AudioNode[] = []
+const bufferCache = new Map<number, AudioBuffer>()
 
 function getContext(): AudioContext {
   context ??= new AudioContext()
@@ -30,11 +32,17 @@ function track(...added: AudioNode[]): void {
 }
 
 function pluckBuffer(ctx: AudioContext, frequency: number): AudioBuffer {
+  const cached = bufferCache.get(frequency)
+  if (cached) {
+    return cached
+  }
   const samples = normalizePluck(
     synthesizePluck(frequency, ctx.sampleRate, NOTE_DURATION_S),
+    0.92,
   )
   const buffer = ctx.createBuffer(1, samples.length, ctx.sampleRate)
   buffer.copyToChannel(samples, 0)
+  bufferCache.set(frequency, buffer)
   return buffer
 }
 
@@ -49,13 +57,13 @@ function guitarChain(ctx: AudioContext, source: AudioNode, frequency: number): A
   body.type = 'peaking'
   body.frequency.value = Math.min(220, frequency * 1.5)
   body.Q.value = 0.9
-  body.gain.value = 4
+  body.gain.value = 5
   highPass.connect(body)
   track(body)
 
   const lowPass = ctx.createBiquadFilter()
   lowPass.type = 'lowpass'
-  lowPass.frequency.value = 1900
+  lowPass.frequency.value = 2200
   lowPass.Q.value = 0.5
   body.connect(lowPass)
   track(lowPass)
@@ -63,26 +71,35 @@ function guitarChain(ctx: AudioContext, source: AudioNode, frequency: number): A
   return lowPass
 }
 
+/** Resumes the shared AudioContext so the first tap does not wait on suspend. */
+export async function warmReferenceAudio(): Promise<void> {
+  const ctx = getContext()
+  if (ctx.state === 'suspended') {
+    await ctx.resume()
+  }
+}
+
 /** Plays a short plucked-string reference tone for ear comparison. */
-export function playReferencePitch(pitch: Pitch): void {
+export async function playReferencePitch(pitch: Pitch): Promise<void> {
   clearPlayback()
-  suppressPitchDetection(SUPPRESS_MS)
 
   const ctx = getContext()
-  void ctx.resume()
+  await ctx.resume()
 
   const frequency = pitchToFrequency(pitch)
   const source = ctx.createBufferSource()
   source.buffer = pluckBuffer(ctx, frequency)
 
   const output = ctx.createGain()
-  output.gain.setValueAtTime(0.5, ctx.currentTime)
+  output.gain.setValueAtTime(OUTPUT_GAIN, ctx.currentTime)
   output.connect(ctx.destination)
   track(source, output)
 
   const chain = guitarChain(ctx, source, frequency)
   chain.connect(output)
-  source.start()
+
+  suppressPitchDetection(SUPPRESS_MS)
+  source.start(0)
 
   stopTimer = setTimeout(clearPlayback, NOTE_DURATION_S * 1000 + 80)
 }
