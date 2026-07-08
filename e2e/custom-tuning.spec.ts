@@ -18,7 +18,9 @@ async function saveCustomTuning(page: import('@playwright/test').Page, name: str
   const input = page.getByRole('textbox', { name: 'Tuning name' })
   await input.fill(name)
   await page.getByRole('button', { name: 'Save', exact: true }).click()
-  await expect(page.getByRole('button', { name: new RegExp(`${name} G#1`) })).toBeVisible()
+  await expect(
+    page.getByRole('button', { name: new RegExp(`${name} G#1`) }),
+  ).toBeVisible()
 }
 
 async function swipeDeleteCustom(page: import('@playwright/test').Page, name: string) {
