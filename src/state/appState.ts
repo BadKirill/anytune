@@ -74,10 +74,8 @@ export function useTunerState(): TunerState {
   const [customTunings, setCustomTunings] = useState<Tuning[]>(initialCustomTunings)
   const [manualStringIndex, setManualStringIndex] = useState<number | null>(null)
   const pitch = usePitch()
-  const { saveDraft, deleteCustom, renameCustom } = useCustomTuningActions(
-    setTuning,
-    setCustomTunings,
-  )
+  const { saveDraft, deleteCustom, renameCustom, resetSaveDraft } =
+    useCustomTuningActions(setTuning, setCustomTunings)
 
   const rawAnalysis = useMemo(
     () => computeAnalysis(pitch.frequency, tuning, manualStringIndex),
@@ -92,9 +90,13 @@ export function useTunerState(): TunerState {
     persistLastActiveTuning(next)
   }, [])
 
-  const editString = useCallback((index: number, notePitch: Pitch) => {
-    setTuning((prev) => withEditedString(prev, index, notePitch))
-  }, [])
+  const editString = useCallback(
+    (index: number, notePitch: Pitch) => {
+      resetSaveDraft()
+      setTuning((prev) => withEditedString(prev, index, notePitch))
+    },
+    [resetSaveDraft],
+  )
 
   const refreshCustomTunings = useCallback(() => {
     setCustomTunings((prev) => {

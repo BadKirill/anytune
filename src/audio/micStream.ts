@@ -42,6 +42,7 @@ function toMicError(error: unknown): MicStreamError {
  */
 export async function startMicSession(
   onWindow: (samples: Float32Array, sampleRate: number) => void,
+  onStreamLost?: () => void,
 ): Promise<MicSession> {
   let stream: MediaStream
   try {
@@ -69,6 +70,13 @@ export async function startMicSession(
     onWindow(event.data, context.sampleRate)
   }
   source.connect(worklet)
+
+  const notifyLost = (): void => {
+    onStreamLost?.()
+  }
+  for (const track of stream.getAudioTracks()) {
+    track.addEventListener('ended', notifyLost)
+  }
 
   return {
     sampleRate: context.sampleRate,

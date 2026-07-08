@@ -1,5 +1,6 @@
 import { pitchToFrequency, type Pitch } from '../core/music'
 import { normalizePluck, synthesizePluck } from '../core/signal/pluckedTone'
+import { onAppResume } from './appResume'
 import { suppressPitchDetection } from './pitchGate'
 
 const NOTE_DURATION_S = 1.4
@@ -12,6 +13,10 @@ let nodes: AudioNode[] = []
 const bufferCache = new Map<number, AudioBuffer>()
 
 function getContext(): AudioContext {
+  if (context?.state === 'closed') {
+    context = null
+    bufferCache.clear()
+  }
   context ??= new AudioContext()
   return context
 }
@@ -103,3 +108,7 @@ export async function playReferencePitch(pitch: Pitch): Promise<void> {
 
   stopTimer = setTimeout(clearPlayback, NOTE_DURATION_S * 1000 + 80)
 }
+
+onAppResume(() => {
+  void warmReferenceAudio()
+})

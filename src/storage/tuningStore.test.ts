@@ -100,4 +100,27 @@ describe('tuningStore', () => {
     )
     expect(listCustom()).toEqual([TUNING])
   })
+
+  it('normalizes string octaves when loading legacy storage', () => {
+    localStorage.setItem(
+      'anytune.customTunings',
+      JSON.stringify([
+        {
+          ...TUNING,
+          strings: [{ pitch: { note: 'F', octave: '1' } }],
+        },
+      ]),
+    )
+    expect(listCustom()).toEqual([
+      {
+        ...TUNING,
+        strings: [{ pitch: { note: 'F', octave: 1 } }],
+      },
+    ])
+  })
+
+  it('restores last active tuning from session storage', () => {
+    sessionStorage.setItem('anytune.lastActiveTuning.session', JSON.stringify(TUNING))
+    expect(loadLastActiveTuning()).toEqual(TUNING)
+  })
 })

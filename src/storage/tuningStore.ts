@@ -1,9 +1,11 @@
+import type { Pitch } from '../core/music'
 import type { Tuning } from '../core/tunings'
-import { isSavedCustomTuning } from '../core/tunings/custom'
+import { appearsInMyTunings, isSavedCustomTuning } from '../core/tunings/custom'
 
 const STORAGE_KEY = 'anytune.customTunings'
 const SESSION_KEY = 'anytune.customTunings.session'
 const LAST_ACTIVE_KEY = 'anytune.lastActiveTuning'
+const LAST_ACTIVE_SESSION_KEY = 'anytune.lastActiveTuning.session'
 const VERSION = 1
 
 interface StoredTunings {
@@ -15,48 +17,83 @@ function emptyStore(): StoredTunings {
   return { v: VERSION, tunings: [] }
 }
 
+function parseOctave(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  return null
+}
+
+function normalizeString(value: unknown): Tuning['strings'][number] | null {
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+  const pitch = (value as { pitch?: { note?: unknown; octave?: unknown } }).pitch
+  if (typeof pitch?.note !== 'string') {
+    return null
+  }
+  const octave = parseOctave(pitch.octave)
+  if (octave === null) {
+    return null
+  }
+  return { pitch: { note: pitch.note as Pitch['note'], octave } }
+}
+
+/** Repairs common storage glitches (e.g. string octaves) before validation. */
+export function normalizeTuning(value: unknown): Tuning | null {
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+  const tuning = value as Partial<Tuning>
+  if (
+    typeof tuning.id !== 'string' ||
+    typeof tuning.name !== 'string' ||
+    (tuning.instrument !== 'guitar' && tuning.instrument !== 'bass') ||
+    !Array.isArray(tuning.strings) ||
+    tuning.strings.length === 0
+  ) {
+    return null
+  }
+
+  const strings = tuning.strings
+    .map(normalizeString)
+    .filter((entry): entry is Tuning['strings'][number] => entry !== null)
+  if (strings.length === 0) {
+    return null
+  }
+
+  return {
+    id: tuning.id,
+    name: tuning.name,
+    instrument: tuning.instrument,
+    strings,
+  }
+}
+
 function normaliseStored(raw: unknown): StoredTunings {
   if (!raw || typeof raw !== 'object') {
     return emptyStore()
   }
 
-  if (Array.isArray(raw)) {
-    return { v: VERSION, tunings: raw.filter(isValidTuning) }
-  }
-
-  const record = raw as Partial<StoredTunings>
-  if (!Array.isArray(record.tunings)) {
+  const tunings = Array.isArray(raw)
+    ? raw
+    : Array.isArray((raw as Partial<StoredTunings>).tunings)
+      ? (raw as Partial<StoredTunings>).tunings
+      : null
+  if (!tunings) {
     return emptyStore()
   }
 
   return {
-    v: record.v === VERSION ? VERSION : VERSION,
-    tunings: record.tunings.filter(isValidTuning),
+    v: VERSION,
+    tunings: tunings
+      .map(normalizeTuning)
+      .filter((entry): entry is Tuning => entry !== null),
   }
-}
-
-function isValidString(value: unknown): boolean {
-  if (!value || typeof value !== 'object') {
-    return false
-  }
-  const string = value as { pitch?: { note?: unknown; octave?: unknown } }
-  const pitch = string.pitch
-  return !!pitch && typeof pitch.note === 'string' && typeof pitch.octave === 'number'
-}
-
-function isValidTuning(value: unknown): value is Tuning {
-  if (!value || typeof value !== 'object') {
-    return false
-  }
-  const tuning = value as Partial<Tuning>
-  return (
-    typeof tuning.id === 'string' &&
-    typeof tuning.name === 'string' &&
-    (tuning.instrument === 'guitar' || tuning.instrument === 'bass') &&
-    Array.isArray(tuning.strings) &&
-    tuning.strings.length > 0 &&
-    tuning.strings.every(isValidString)
-  )
 }
 
 function load(): StoredTunings {
@@ -77,6 +114,7 @@ function persist(data: StoredTunings): boolean {
     mirrorSession(data.tunings)
     return true
   } catch {
+    mirrorSession(data.tunings)
     return false
   }
 }
@@ -98,6 +136,28 @@ function mirrorSession(tunings: Tuning[]): void {
     sessionStorage.setItem(SESSION_KEY, JSON.stringify({ v: VERSION, tunings }))
   } catch {
     // sessionStorage may be unavailable in some embedded browsers
+  }
+}
+
+function clearLastActive(): void {
+  try {
+    localStorage.removeItem(LAST_ACTIVE_KEY)
+    sessionStorage.removeItem(LAST_ACTIVE_SESSION_KEY)
+  } catch {
+    // ignore
+  }
+}
+
+function readLastActiveFrom(storage: Storage, key: string): Tuning | null {
+  try {
+    const raw = storage.getItem(key)
+    if (!raw) {
+      return null
+    }
+    const parsed = normalizeTuning(JSON.parse(raw) as unknown)
+    return parsed && appearsInMyTunings(parsed) ? parsed : null
+  } catch {
+    return null
   }
 }
 
@@ -123,33 +183,28 @@ export function listCustom(): Tuning[] {
 
 /** Restores the last active custom tuning for this device, if any. */
 export function loadLastActiveTuning(): Tuning | null {
-  try {
-    const raw = localStorage.getItem(LAST_ACTIVE_KEY)
-    if (!raw) {
-      return null
-    }
-    const parsed = JSON.parse(raw) as unknown
-    if (isValidTuning(parsed) && isSavedCustomTuning(parsed)) {
-      return parsed
-    }
-  } catch {
-    return null
-  }
-  return null
+  return (
+    readLastActiveFrom(localStorage, LAST_ACTIVE_KEY) ??
+    readLastActiveFrom(sessionStorage, LAST_ACTIVE_SESSION_KEY) ??
+    readLastActiveFrom(localStorage, LAST_ACTIVE_SESSION_KEY) ??
+    readLastActiveFrom(sessionStorage, LAST_ACTIVE_KEY)
+  )
 }
 
 /** Remembers the active custom tuning so it survives reloads and picker refresh. */
 export function persistLastActiveTuning(tuning: Tuning): void {
-  if (!isSavedCustomTuning(tuning)) {
-    try {
-      localStorage.removeItem(LAST_ACTIVE_KEY)
-    } catch {
-      // ignore
-    }
+  if (!appearsInMyTunings(tuning)) {
+    clearLastActive()
     return
   }
+  const json = JSON.stringify(tuning)
   try {
-    localStorage.setItem(LAST_ACTIVE_KEY, JSON.stringify(tuning))
+    localStorage.setItem(LAST_ACTIVE_KEY, json)
+  } catch {
+    // ignore
+  }
+  try {
+    sessionStorage.setItem(LAST_ACTIVE_SESSION_KEY, json)
   } catch {
     // ignore
   }
@@ -171,10 +226,6 @@ export function remove(id: string): void {
   data.tunings = data.tunings.filter((entry) => entry.id !== id)
   persist(data)
   if (loadLastActiveTuning()?.id === id) {
-    try {
-      localStorage.removeItem(LAST_ACTIVE_KEY)
-    } catch {
-      // ignore
-    }
+    clearLastActive()
   }
 }

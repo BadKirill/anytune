@@ -1,12 +1,28 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { isSavedCustomTuning, PRESET_TUNINGS, type Tuning } from '../core/tunings'
 
 import {
-  customTuningsForMenu,
+  buildMyTuningsList,
   mergeStoredCustomTunings,
   upsertCustomTuning,
 } from './customTunings'
+
+function memoryStorage(): Storage {
+  const data = new Map<string, string>()
+  return {
+    getItem: (key: string) => data.get(key) ?? null,
+    setItem: (key: string, value: string) => data.set(key, value),
+    removeItem: (key: string) => data.delete(key),
+    clear: () => {
+      data.clear()
+    },
+    key: () => null,
+    get length() {
+      return data.size
+    },
+  }
+}
 
 const SAVED: Tuning = {
   id: 'custom-1',
@@ -16,8 +32,13 @@ const SAVED: Tuning = {
 }
 
 describe('customTunings', () => {
+  beforeEach(() => {
+    vi.stubGlobal('localStorage', memoryStorage())
+    vi.stubGlobal('sessionStorage', memoryStorage())
+  })
+
   it('adds the active saved tuning when the list is stale', () => {
-    expect(customTuningsForMenu([], SAVED)).toEqual([SAVED])
+    expect(buildMyTuningsList([], SAVED)).toEqual([SAVED])
   })
 
   it('keeps in-memory tunings when storage is empty', () => {
@@ -31,7 +52,7 @@ describe('customTunings', () => {
 
   it('includes any non-preset active tuning', () => {
     expect(
-      customTuningsForMenu([], {
+      buildMyTuningsList([], {
         ...SAVED,
         id: 'user-tuning-99',
         name: 'Test 28383',

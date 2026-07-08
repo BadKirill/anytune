@@ -11,3 +11,15 @@ export function isSavedCustomTuning(tuning: Tuning): boolean {
   }
   return !PRESET_IDS.has(tuning.id)
 }
+
+/** True when a tuning should appear under My tunings (includes renamed legacy entries). */
+export function appearsInMyTunings(tuning: Tuning): boolean {
+  if (tuning.id === DRAFT_TUNING_ID) {
+    return false
+  }
+  if (!PRESET_IDS.has(tuning.id)) {
+    return true
+  }
+  const preset = PRESET_TUNINGS.find((entry) => entry.id === tuning.id)
+  return preset ? preset.name !== tuning.name : false
+}
