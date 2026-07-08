@@ -1,7 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { installAppResumeHandlers } from './audio/appResume'
 import './index.css'
 import App from './App.tsx'
+
+installAppResumeHandlers()
 
 const root = document.getElementById('root')
 if (!root) {

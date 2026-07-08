@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { isSavedCustomTuning } from './custom'
+import { appearsInMyTunings, isSavedCustomTuning } from './custom'
 import { PRESET_TUNINGS } from './presets'
 import type { Tuning } from './types'
 
@@ -25,5 +25,16 @@ describe('isSavedCustomTuning', () => {
         id: 'custom-draft',
       }),
     ).toBe(false)
+  })
+})
+
+describe('appearsInMyTunings', () => {
+  it('includes saved customs and renamed legacy preset entries', () => {
+    const preset = PRESET_TUNINGS[0]
+    expect(appearsInMyTunings(SAVED)).toBe(true)
+    if (preset) {
+      expect(appearsInMyTunings(preset)).toBe(false)
+      expect(appearsInMyTunings({ ...preset, name: 'Test23' })).toBe(true)
+    }
   })
 })
