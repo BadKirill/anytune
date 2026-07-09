@@ -11,19 +11,22 @@ import {
 import { defaultTuning } from './tuningDefaults'
 
 export function useCustomTuningHandlers(
+  tuning: Tuning,
   setTuning: Dispatch<SetStateAction<Tuning>>,
   bumpTunings: () => void,
 ) {
   const saveDraft = useCallback(
     (name: string) => {
-      setTuning((prev) => {
-        const saved: Tuning = { ...prev, id: createCustomId(), name }
-        saveCustomTuning(saved)
-        return saved
-      })
+      const trimmed = name.trim()
+      if (trimmed === '') {
+        return
+      }
+      const saved: Tuning = { ...tuning, id: createCustomId(), name: trimmed }
+      saveCustomTuning(saved)
+      setTuning(saved)
       bumpTunings()
     },
-    [bumpTunings, setTuning],
+    [bumpTunings, setTuning, tuning],
   )
 
   const deleteCustom = useCallback(

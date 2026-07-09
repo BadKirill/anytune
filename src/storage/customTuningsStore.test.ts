@@ -147,4 +147,11 @@ describe('customTuningsStore', () => {
     expect(updated?.name).toBe('New name')
     expect(readCustomTunings()[0]?.name).toBe('New name')
   })
+
+  it('dedupes identical tunings saved with different ids', () => {
+    saveCustomTuning(TUNING)
+    saveCustomTuning({ ...TUNING, id: 'custom-2' })
+    expect(readCustomTunings()).toHaveLength(1)
+    expect(myTuningsForPicker(TUNING)).toHaveLength(1)
+  })
 })
