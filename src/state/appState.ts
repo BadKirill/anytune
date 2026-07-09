@@ -1,20 +1,20 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import { usePitch } from '../audio/usePitch'
 import { pitchesEqual, type Pitch } from '../core/music'
 import { analyze, analyzeString, type StringAnalysis, type Tuning } from '../core/tunings'
+import { DRAFT_TUNING_ID } from '../core/tunings/custom'
 import {
-  listCustom,
-  loadLastActiveTuning,
-  persistLastActiveTuning,
-} from '../storage/tuningStore'
+  myTuningsForPicker,
+  readActiveTuning,
+  writeActiveTuning,
+} from '../storage/customTuningsStore'
 
-import { mergeStoredCustomTunings } from './customTunings'
 import { defaultTuning } from './tuningDefaults'
-import { useCustomTuningActions } from './useCustomTuningActions'
+import { useCustomTuningHandlers } from './useCustomTuningHandlers'
 import { useStableAnalysis } from './useStableAnalysis'
 
-export const DRAFT_TUNING_ID = 'custom-draft'
+export { DRAFT_TUNING_ID }
 
 function withEditedString(prev: Tuning, index: number, notePitch: Pitch): Tuning {
   const current = prev.strings[index]?.pitch
@@ -29,20 +29,10 @@ function withEditedString(prev: Tuning, index: number, notePitch: Pitch): Tuning
   }
 }
 
-function initialCustomTunings(): Tuning[] {
-  const stored = listCustom()
-  const last = loadLastActiveTuning()
-  return last ? mergeStoredCustomTunings(stored, [last]) : stored
-}
-
-function initialTuning(): Tuning {
-  return loadLastActiveTuning() ?? defaultTuning()
-}
-
 export interface TunerState {
   tuning: Tuning
-  customTunings: Tuning[]
-  /** null = auto mode: the analyzer picks the closest string. */
+  tuningsRevision: number
+  myTunings: Tuning[]
   manualStringIndex: number | null
   analysis: StringAnalysis | null
   pitch: ReturnType<typeof usePitch>
@@ -52,7 +42,6 @@ export interface TunerState {
   saveDraft: (name: string) => void
   deleteCustom: (id: string) => void
   renameCustom: (id: string, name: string) => void
-  refreshCustomTunings: () => void
 }
 
 function computeAnalysis(
@@ -70,45 +59,43 @@ function computeAnalysis(
 
 /** Single source of truth for the tuner screen. */
 export function useTunerState(): TunerState {
-  const [tuning, setTuning] = useState<Tuning>(initialTuning)
-  const [customTunings, setCustomTunings] = useState<Tuning[]>(initialCustomTunings)
+  const [tuning, setTuning] = useState<Tuning>(
+    () => readActiveTuning() ?? defaultTuning(),
+  )
+  const [tuningsRevision, setTuningsRevision] = useState(0)
   const [manualStringIndex, setManualStringIndex] = useState<number | null>(null)
   const pitch = usePitch()
-  const { saveDraft, deleteCustom, renameCustom, resetSaveDraft } =
-    useCustomTuningActions(setTuning, setCustomTunings)
 
-  const rawAnalysis = useMemo(
-    () => computeAnalysis(pitch.frequency, tuning, manualStringIndex),
-    [pitch.frequency, tuning, manualStringIndex],
+  const bumpTunings = useCallback(() => {
+    setTuningsRevision((revision) => revision + 1)
+  }, [])
+
+  const { saveDraft, deleteCustom, renameCustom } = useCustomTuningHandlers(
+    setTuning,
+    bumpTunings,
   )
+
+  void tuningsRevision
+  const myTunings = myTuningsForPicker(tuning)
+
+  const rawAnalysis = computeAnalysis(pitch.frequency, tuning, manualStringIndex)
   const scope = `${tuning.id}:${manualStringIndex === null ? 'auto' : String(manualStringIndex)}`
   const analysis = useStableAnalysis(rawAnalysis, pitch.clarity, pitch.frequency, scope)
 
   const selectTuning = useCallback((next: Tuning) => {
     setTuning(next)
     setManualStringIndex(null)
-    persistLastActiveTuning(next)
+    writeActiveTuning(next)
   }, [])
 
-  const editString = useCallback(
-    (index: number, notePitch: Pitch) => {
-      resetSaveDraft()
-      setTuning((prev) => withEditedString(prev, index, notePitch))
-    },
-    [resetSaveDraft],
-  )
-
-  const refreshCustomTunings = useCallback(() => {
-    setCustomTunings((prev) => {
-      const stored = mergeStoredCustomTunings(listCustom(), prev)
-      const last = loadLastActiveTuning()
-      return last ? mergeStoredCustomTunings(stored, [last]) : stored
-    })
+  const editString = useCallback((index: number, notePitch: Pitch) => {
+    setTuning((prev) => withEditedString(prev, index, notePitch))
   }, [])
 
   return {
     tuning,
-    customTunings,
+    tuningsRevision,
+    myTunings,
     manualStringIndex,
     analysis,
     pitch,
@@ -118,6 +105,5 @@ export function useTunerState(): TunerState {
     saveDraft,
     deleteCustom,
     renameCustom,
-    refreshCustomTunings,
   }
 }
