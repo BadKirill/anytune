@@ -128,6 +128,23 @@ function readLegacyTunings(): Tuning[] {
   return [...merged.values()]
 }
 
+function tuningFingerprint(tuning: Tuning): string {
+  return `${tuning.instrument}|${tuning.name}|${tuning.strings
+    .map((string) => `${string.pitch.note}:${String(string.pitch.octave)}`)
+    .join('|')}`
+}
+
+function dedupeTuningList(tunings: Tuning[]): Tuning[] {
+  const byFingerprint = new Map<string, Tuning>()
+  for (const tuning of tunings) {
+    if (!isSavedCustomTuning(tuning)) {
+      continue
+    }
+    byFingerprint.set(tuningFingerprint(tuning), tuning)
+  }
+  return [...byFingerprint.values()]
+}
+
 function ensureStoredId(tuning: Tuning): Tuning {
   if (isSavedCustomTuning(tuning) || isUnmodifiedPreset(tuning)) {
     return tuning
@@ -136,7 +153,7 @@ function ensureStoredId(tuning: Tuning): Tuning {
 }
 
 function writeTuningList(tunings: Tuning[]): void {
-  const file: TuningListFile = { v: 2, tunings }
+  const file: TuningListFile = { v: 2, tunings: dedupeTuningList(tunings) }
   writeRaw(localStorage, LIST_KEY, file)
   writeRaw(sessionStorage, LIST_SESSION_KEY, file)
 }
@@ -257,16 +274,11 @@ export function writeActiveTuning(tuning: Tuning): void {
 
 /** Builds the My tunings list for the picker — storage plus the live selection. */
 export function myTuningsForPicker(active: Tuning): Tuning[] {
-  const byId = new Map(
-    readTuningList()
-      .filter(isSavedCustomTuning)
-      .map((tuning) => [tuning.id, tuning]),
-  )
+  const entries = readTuningList().filter(isSavedCustomTuning)
   if (belongsInMyTunings(active)) {
-    const entry = isSavedCustomTuning(active) ? active : ensureStoredId(active)
-    byId.set(entry.id, entry)
+    entries.push(isSavedCustomTuning(active) ? active : ensureStoredId(active))
   }
-  return [...byId.values()]
+  return dedupeTuningList(entries)
 }
 
 export function createCustomId(): string {

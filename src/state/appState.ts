@@ -71,6 +71,7 @@ export function useTunerState(): TunerState {
   }, [])
 
   const { saveDraft, deleteCustom, renameCustom } = useCustomTuningHandlers(
+    tuning,
     setTuning,
     bumpTunings,
   )
