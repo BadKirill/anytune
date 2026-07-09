@@ -11,7 +11,6 @@ import { UI } from './components/strings'
 import { formatPitch } from './core/music'
 import type { StringAnalysis } from './core/tunings'
 import { DRAFT_TUNING_ID, useTunerState, type TunerState } from './state/appState'
-import { buildMyTuningsList } from './state/customTunings'
 
 type Modal = { kind: 'none' } | { kind: 'presets' } | { kind: 'edit'; index: number }
 
@@ -79,7 +78,8 @@ function Modals({
   if (modal.kind === 'presets') {
     return (
       <PresetPicker
-        customTunings={buildMyTuningsList(state.customTunings, state.tuning)}
+        key={state.tuningsRevision}
+        customTunings={state.myTunings}
         canSaveDraft={state.tuning.id === DRAFT_TUNING_ID}
         onSelect={(tuning) => {
           state.selectTuning(tuning)
@@ -127,7 +127,6 @@ function App() {
       <Header
         state={state}
         onOpenPresets={() => {
-          state.refreshCustomTunings()
           setModal({ kind: 'presets' })
         }}
       />
