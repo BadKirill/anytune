@@ -154,4 +154,17 @@ describe('customTuningsStore', () => {
     expect(readCustomTunings()).toHaveLength(1)
     expect(myTuningsForPicker(TUNING)).toHaveLength(1)
   })
+
+  it('loads legacy user-owned ids that do not use the custom- prefix', () => {
+    const legacy: Tuning = { ...TUNING, id: 'user-tuning-42' }
+    localStorage.setItem('anytune.customTunings', JSON.stringify([legacy]))
+    expect(readCustomTunings()).toEqual([legacy])
+    expect(myTuningsForPicker(legacy)).toEqual([legacy])
+  })
+
+  it('lists the active tuning when only the active key is set', () => {
+    localStorage.setItem('anytune.v2.activeTuning', JSON.stringify(TUNING))
+    expect(readCustomTunings()).toEqual([TUNING])
+    expect(myTuningsForPicker(TUNING)).toEqual([TUNING])
+  })
 })

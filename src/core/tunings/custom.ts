@@ -5,9 +5,17 @@ import type { Tuning } from './types'
 
 export const DRAFT_TUNING_ID = 'custom-draft'
 
-/** True when the user has saved a custom tuning (id is `custom-<timestamp>`). */
+const PRESET_IDS = new Set(PRESET_TUNINGS.map((preset) => preset.id))
+
+/** True when the user has saved a custom tuning (current or legacy id). */
 export function isSavedCustomTuning(tuning: Tuning): boolean {
-  return tuning.id.startsWith('custom-') && tuning.id !== DRAFT_TUNING_ID
+  if (isDraftTuning(tuning)) {
+    return false
+  }
+  if (tuning.id.startsWith('custom-')) {
+    return true
+  }
+  return !PRESET_IDS.has(tuning.id)
 }
 
 export function isDraftTuning(tuning: Tuning): boolean {
