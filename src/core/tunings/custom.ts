@@ -47,3 +47,8 @@ export function belongsInMyTunings(tuning: Tuning): boolean {
   }
   return !isUnmodifiedPreset(tuning)
 }
+
+/** Picker should always show the live selection when it is not a stock preset. */
+export function appearsInPicker(tuning: Tuning): boolean {
+  return belongsInMyTunings(tuning)
+}
