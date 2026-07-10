@@ -21,6 +21,7 @@ describe('isSavedCustomTuning', () => {
     const preset = PRESET_TUNINGS[0]
     expect(preset).toBeDefined()
     expect(isSavedCustomTuning(SAVED)).toBe(true)
+    expect(isSavedCustomTuning({ ...SAVED, id: 'user-tuning-42' })).toBe(true)
     if (preset) {
       expect(isSavedCustomTuning(preset)).toBe(false)
     }

@@ -42,6 +42,7 @@ export interface TunerState {
   saveDraft: (name: string) => void
   deleteCustom: (id: string) => void
   renameCustom: (id: string, name: string) => void
+  refreshMyTunings: () => void
 }
 
 function computeAnalysis(
@@ -106,5 +107,6 @@ export function useTunerState(): TunerState {
     saveDraft,
     deleteCustom,
     renameCustom,
+    refreshMyTunings: bumpTunings,
   }
 }

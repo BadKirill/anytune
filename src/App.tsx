@@ -127,6 +127,7 @@ function App() {
       <Header
         state={state}
         onOpenPresets={() => {
+          state.refreshMyTunings()
           setModal({ kind: 'presets' })
         }}
       />
