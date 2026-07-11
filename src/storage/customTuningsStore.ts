@@ -1,6 +1,7 @@
 import type { Pitch } from '../core/music'
 import type { Tuning } from '../core/tunings'
 import {
+  appearsInPicker,
   belongsInMyTunings,
   isDraftTuning,
   isSavedCustomTuning,
@@ -155,12 +156,30 @@ function absorbTunings(merged: Map<string, Tuning>, raw: unknown): void {
   }
 }
 
+function absorbActiveTunings(merged: Map<string, Tuning>): void {
+  for (const storage of [localStorage, sessionStorage]) {
+    for (const key of [
+      ACTIVE_KEY,
+      ACTIVE_SESSION_KEY,
+      LEGACY_ACTIVE_KEY,
+      LEGACY_ACTIVE_SESSION_KEY,
+    ]) {
+      const parsed = normalizeTuning(readRaw(storage, key))
+      if (parsed && appearsInPicker(parsed)) {
+        const stored = ensureStoredId(parsed)
+        merged.set(tuningFingerprint(stored), stored)
+      }
+    }
+  }
+}
+
 function readTuningListSourcesOnly(): Tuning[] {
   const merged = new Map<string, Tuning>()
   absorbTunings(merged, readRaw(localStorage, LIST_KEY))
   absorbTunings(merged, readRaw(sessionStorage, LIST_SESSION_KEY))
   absorbTunings(merged, readRaw(localStorage, LEGACY_LIST_KEY))
   absorbTunings(merged, readRaw(sessionStorage, LEGACY_LIST_SESSION_KEY))
+  absorbActiveTunings(merged)
   return [...merged.values()]
 }
 
@@ -313,10 +332,19 @@ export function writeActiveTuning(tuning: Tuning): void {
   writeRaw(sessionStorage, ACTIVE_SESSION_KEY, stored)
 }
 
+/** Ensures a tuning is written to the saved list (e.g. before opening the picker). */
+export function persistTuningToList(tuning: Tuning): void {
+  if (!appearsInPicker(tuning)) {
+    return
+  }
+  ensureListed(ensureStoredId(tuning))
+}
+
 /** Builds the My tunings list for the picker — storage plus the live selection. */
 export function myTuningsForPicker(active: Tuning): Tuning[] {
+  persistTuningToList(active)
   const entries = [...readTuningList()]
-  if (belongsInMyTunings(active)) {
+  if (appearsInPicker(active)) {
     entries.push(ensureStoredId(active))
   }
   return dedupeTuningList(entries)

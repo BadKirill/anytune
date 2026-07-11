@@ -167,4 +167,10 @@ describe('customTuningsStore', () => {
     expect(readCustomTunings()).toEqual([TUNING])
     expect(myTuningsForPicker(TUNING)).toEqual([TUNING])
   })
+
+  it('persists the live selection before building the picker list', () => {
+    const live: Tuning = { ...TUNING, id: 'custom-live', name: 'Testing' }
+    expect(myTuningsForPicker(live)).toEqual([live])
+    expect(readCustomTunings()).toEqual([live])
+  })
 })

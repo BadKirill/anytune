@@ -5,7 +5,7 @@ import { pitchesEqual, type Pitch } from '../core/music'
 import { analyze, analyzeString, type StringAnalysis, type Tuning } from '../core/tunings'
 import { DRAFT_TUNING_ID } from '../core/tunings/custom'
 import {
-  myTuningsForPicker,
+  persistTuningToList,
   readActiveTuning,
   writeActiveTuning,
 } from '../storage/customTuningsStore'
@@ -32,7 +32,6 @@ function withEditedString(prev: Tuning, index: number, notePitch: Pitch): Tuning
 export interface TunerState {
   tuning: Tuning
   tuningsRevision: number
-  myTunings: Tuning[]
   manualStringIndex: number | null
   analysis: StringAnalysis | null
   pitch: ReturnType<typeof usePitch>
@@ -77,8 +76,10 @@ export function useTunerState(): TunerState {
     bumpTunings,
   )
 
-  void tuningsRevision
-  const myTunings = myTuningsForPicker(tuning)
+  const refreshMyTunings = useCallback(() => {
+    persistTuningToList(tuning)
+    bumpTunings()
+  }, [bumpTunings, tuning])
 
   const rawAnalysis = computeAnalysis(pitch.frequency, tuning, manualStringIndex)
   const scope = `${tuning.id}:${manualStringIndex === null ? 'auto' : String(manualStringIndex)}`
@@ -97,7 +98,6 @@ export function useTunerState(): TunerState {
   return {
     tuning,
     tuningsRevision,
-    myTunings,
     manualStringIndex,
     analysis,
     pitch,
@@ -107,6 +107,6 @@ export function useTunerState(): TunerState {
     saveDraft,
     deleteCustom,
     renameCustom,
-    refreshMyTunings: bumpTunings,
+    refreshMyTunings,
   }
 }
