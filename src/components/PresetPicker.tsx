@@ -2,15 +2,13 @@ import { useState } from 'react'
 
 import { formatPitch } from '../core/music'
 import { PRESET_TUNINGS, type Instrument, type Tuning } from '../core/tunings'
-import { myTuningsForPicker } from '../storage/customTuningsStore'
 import { CustomTuningList } from './CustomTuningList'
 import { Sheet } from './Sheet'
 import { TextField } from './TextField'
 import { UI } from './strings'
 
 interface PresetPickerProps {
-  activeTuning: Tuning
-  listRevision: number
+  customTunings: Tuning[]
   canSaveDraft: boolean
   onSelect: (tuning: Tuning) => void
   onSaveDraft: (name: string) => void
@@ -81,8 +79,7 @@ function presetsFor(instrument: Instrument): Tuning[] {
 }
 
 export function PresetPicker({
-  activeTuning,
-  listRevision,
+  customTunings,
   canSaveDraft,
   onSelect,
   onSaveDraft,
@@ -90,9 +87,6 @@ export function PresetPicker({
   onRenameCustom,
   onClose,
 }: PresetPickerProps) {
-  void listRevision
-  const customTunings = myTuningsForPicker(activeTuning)
-
   return (
     <Sheet onClose={onClose} tall>
       <h2>{UI.tunings}</h2>

@@ -4,14 +4,10 @@ import { usePitch } from '../audio/usePitch'
 import { pitchesEqual, type Pitch } from '../core/music'
 import { analyze, analyzeString, type StringAnalysis, type Tuning } from '../core/tunings'
 import { DRAFT_TUNING_ID } from '../core/tunings/custom'
-import {
-  persistTuningToList,
-  readActiveTuning,
-  writeActiveTuning,
-} from '../storage/customTuningsStore'
+import { readActiveTuning, writeActiveTuning } from '../storage/customTuningsStore'
 
 import { defaultTuning } from './tuningDefaults'
-import { useCustomTuningHandlers } from './useCustomTuningHandlers'
+import { useSavedTunings } from './useSavedTunings'
 import { useStableAnalysis } from './useStableAnalysis'
 
 export { DRAFT_TUNING_ID }
@@ -31,6 +27,7 @@ function withEditedString(prev: Tuning, index: number, notePitch: Pitch): Tuning
 
 export interface TunerState {
   tuning: Tuning
+  pickerTunings: Tuning[]
   tuningsRevision: number
   manualStringIndex: number | null
   analysis: StringAnalysis | null
@@ -62,24 +59,10 @@ export function useTunerState(): TunerState {
   const [tuning, setTuning] = useState<Tuning>(
     () => readActiveTuning() ?? defaultTuning(),
   )
-  const [tuningsRevision, setTuningsRevision] = useState(0)
   const [manualStringIndex, setManualStringIndex] = useState<number | null>(null)
   const pitch = usePitch()
 
-  const bumpTunings = useCallback(() => {
-    setTuningsRevision((revision) => revision + 1)
-  }, [])
-
-  const { saveDraft, deleteCustom, renameCustom } = useCustomTuningHandlers(
-    tuning,
-    setTuning,
-    bumpTunings,
-  )
-
-  const refreshMyTunings = useCallback(() => {
-    persistTuningToList(tuning)
-    bumpTunings()
-  }, [bumpTunings, tuning])
+  const saved = useSavedTunings(tuning, setTuning)
 
   const rawAnalysis = computeAnalysis(pitch.frequency, tuning, manualStringIndex)
   const scope = `${tuning.id}:${manualStringIndex === null ? 'auto' : String(manualStringIndex)}`
@@ -97,16 +80,17 @@ export function useTunerState(): TunerState {
 
   return {
     tuning,
-    tuningsRevision,
+    pickerTunings: saved.pickerTunings,
+    tuningsRevision: saved.tuningsRevision,
     manualStringIndex,
     analysis,
     pitch,
     selectTuning,
     selectString: setManualStringIndex,
     editString,
-    saveDraft,
-    deleteCustom,
-    renameCustom,
-    refreshMyTunings,
+    saveDraft: saved.saveDraft,
+    deleteCustom: saved.deleteCustom,
+    renameCustom: saved.renameCustom,
+    refreshMyTunings: saved.refreshMyTunings,
   }
 }
