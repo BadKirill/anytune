@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { normalizePluck, synthesizePluck } from './pluckedTone'
 
@@ -13,7 +13,24 @@ function rms(samples: Float32Array, from: number, to: number): number {
   return Math.sqrt(sum / (to - from))
 }
 
+/** Deterministic noise so decay assertions do not flake in CI. */
+function seedRandom(seed: number): void {
+  let state = seed
+  vi.spyOn(Math, 'random').mockImplementation(() => {
+    state = (state * 1664525 + 1013904223) >>> 0
+    return state / 0x1_0000_0000
+  })
+}
+
 describe('pluckedTone', () => {
+  beforeEach(() => {
+    seedRandom(0xdecaf)
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('synthesizes a decaying pluck for guitar E2', () => {
     const samples = normalizePluck(synthesizePluck(82.41, SAMPLE_RATE, 1.5))
     expect(samples.length).toBe(Math.floor(SAMPLE_RATE * 1.5))

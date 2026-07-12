@@ -340,14 +340,23 @@ export function persistTuningToList(tuning: Tuning): void {
   ensureListed(ensureStoredId(tuning))
 }
 
-/** Builds the My tunings list for the picker — storage plus the live selection. */
-export function myTuningsForPicker(active: Tuning): Tuning[] {
+/** Merges stored tunings with the live selection for the picker. */
+export function mergePickerTunings(saved: Tuning[], active: Tuning): Tuning[] {
   persistTuningToList(active)
-  const entries = [...readTuningList()]
+  const entries = [...saved]
   if (appearsInPicker(active)) {
     entries.push(ensureStoredId(active))
   }
   return dedupeTuningList(entries)
+}
+
+/** Adds or replaces one tuning in an in-memory list. */
+export function upsertInList(list: Tuning[], tuning: Tuning): Tuning[] {
+  const stored = ensureStoredId(tuning)
+  if (!appearsInPicker(stored)) {
+    return list
+  }
+  return dedupeTuningList([...list.filter((entry) => entry.id !== stored.id), stored])
 }
 
 export function createCustomId(): string {

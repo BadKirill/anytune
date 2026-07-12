@@ -39,6 +39,8 @@ export default defineConfig({
       workbox: {
         // The app is fully offline: precache every built asset.
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        skipWaiting: true,
+        clientsClaim: true,
       },
     }),
   ],

@@ -68,3 +68,24 @@ export async function clearTuningStorage(page: Page): Promise<void> {
     sessionStorage.clear()
   })
 }
+
+/**
+ * Simulates iOS Safari where list writes fail but the active tuning key still saves.
+ * Call before page.goto().
+ */
+export async function blockCustomTuningListWrites(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const shouldBlock = (key: string) =>
+      key.includes('customTunings') && !key.includes('activeTuning')
+
+    for (const storage of [localStorage, sessionStorage]) {
+      const originalSetItem = storage.setItem.bind(storage)
+      storage.setItem = (key: string, value: string) => {
+        if (shouldBlock(key)) {
+          throw new DOMException('The quota has been exceeded.', 'QuotaExceededError')
+        }
+        originalSetItem(key, value)
+      }
+    }
+  })
+}

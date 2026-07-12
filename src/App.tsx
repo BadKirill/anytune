@@ -79,8 +79,7 @@ function Modals({
     return (
       <PresetPicker
         key={state.tuningsRevision}
-        activeTuning={state.tuning}
-        listRevision={state.tuningsRevision}
+        customTunings={state.pickerTunings}
         canSaveDraft={state.tuning.id === DRAFT_TUNING_ID}
         onSelect={(tuning) => {
           state.selectTuning(tuning)

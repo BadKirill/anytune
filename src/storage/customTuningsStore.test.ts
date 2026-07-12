@@ -3,11 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PRESET_TUNINGS, type Tuning } from '../core/tunings'
 import {
   deleteCustomTuning,
-  myTuningsForPicker,
+  mergePickerTunings,
   readActiveTuning,
   readCustomTunings,
   renameCustomTuning,
   saveCustomTuning,
+  upsertInList,
 } from './customTuningsStore'
 
 function memoryStorage(): Storage {
@@ -122,7 +123,7 @@ describe('customTuningsStore', () => {
   })
 
   it('includes the active saved tuning when storage is stale', () => {
-    expect(myTuningsForPicker(TUNING)).toEqual([TUNING])
+    expect(mergePickerTunings([], TUNING)).toEqual([TUNING])
   })
 
   it('migrates renamed legacy presets into my tunings', () => {
@@ -137,7 +138,7 @@ describe('customTuningsStore', () => {
     expect(active?.name).toBe('Test123')
     expect(active?.id.startsWith('custom-')).toBe(true)
     if (active) {
-      expect(myTuningsForPicker(active)).toHaveLength(1)
+      expect(mergePickerTunings([], active)).toHaveLength(1)
     }
   })
 
@@ -152,25 +153,32 @@ describe('customTuningsStore', () => {
     saveCustomTuning(TUNING)
     saveCustomTuning({ ...TUNING, id: 'custom-2' })
     expect(readCustomTunings()).toHaveLength(1)
-    expect(myTuningsForPicker(TUNING)).toHaveLength(1)
+    expect(mergePickerTunings(readCustomTunings(), TUNING)).toHaveLength(1)
   })
 
   it('loads legacy user-owned ids that do not use the custom- prefix', () => {
     const legacy: Tuning = { ...TUNING, id: 'user-tuning-42' }
     localStorage.setItem('anytune.customTunings', JSON.stringify([legacy]))
     expect(readCustomTunings()).toEqual([legacy])
-    expect(myTuningsForPicker(legacy)).toEqual([legacy])
+    expect(mergePickerTunings(readCustomTunings(), legacy)).toEqual([legacy])
   })
 
   it('lists the active tuning when only the active key is set', () => {
     localStorage.setItem('anytune.v2.activeTuning', JSON.stringify(TUNING))
     expect(readCustomTunings()).toEqual([TUNING])
-    expect(myTuningsForPicker(TUNING)).toEqual([TUNING])
+    expect(mergePickerTunings(readCustomTunings(), TUNING)).toEqual([TUNING])
   })
 
   it('persists the live selection before building the picker list', () => {
     const live: Tuning = { ...TUNING, id: 'custom-live', name: 'Testing' }
-    expect(myTuningsForPicker(live)).toEqual([live])
+    expect(mergePickerTunings([], live)).toEqual([live])
     expect(readCustomTunings()).toEqual([live])
+  })
+
+  it('upserts into an in-memory list', () => {
+    expect(upsertInList([], TUNING)).toEqual([TUNING])
+    expect(upsertInList([TUNING], { ...TUNING, name: 'Renamed' })).toEqual([
+      { ...TUNING, name: 'Renamed' },
+    ])
   })
 })
