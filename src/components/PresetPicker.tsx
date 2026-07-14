@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { formatPitch } from '../core/music'
 import { PRESET_TUNINGS, type Instrument, type Tuning } from '../core/tunings'
+import { appearsInPicker } from '../core/tunings/custom'
+import { mergePickerTunings } from '../storage/customTuningsStore'
 import { CustomTuningList } from './CustomTuningList'
 import { Sheet } from './Sheet'
 import { TextField } from './TextField'
@@ -9,6 +11,7 @@ import { UI } from './strings'
 
 interface PresetPickerProps {
   customTunings: Tuning[]
+  activeTuning: Tuning
   canSaveDraft: boolean
   onSelect: (tuning: Tuning) => void
   onSaveDraft: (name: string) => void
@@ -80,6 +83,7 @@ function presetsFor(instrument: Instrument): Tuning[] {
 
 export function PresetPicker({
   customTunings,
+  activeTuning,
   canSaveDraft,
   onSelect,
   onSaveDraft,
@@ -87,6 +91,11 @@ export function PresetPicker({
   onRenameCustom,
   onClose,
 }: PresetPickerProps) {
+  const myTunings = useMemo(
+    () => mergePickerTunings(customTunings, activeTuning),
+    [activeTuning, customTunings],
+  )
+
   return (
     <Sheet onClose={onClose} tall>
       <h2>{UI.tunings}</h2>
@@ -97,7 +106,8 @@ export function PresetPicker({
         </>
       )}
       <CustomTuningList
-        tunings={customTunings}
+        tunings={myTunings}
+        showEmptyHint={!appearsInPicker(activeTuning)}
         onSelect={onSelect}
         onDelete={onDeleteCustom}
         onRename={onRenameCustom}
