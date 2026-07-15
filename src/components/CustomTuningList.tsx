@@ -6,6 +6,7 @@ import { UI } from './strings'
 
 interface CustomTuningListProps {
   tunings: Tuning[]
+  showEmptyHint?: boolean
   onSelect: (tuning: Tuning) => void
   onDelete: (id: string) => void
   onRename: (id: string, name: string) => void
@@ -13,6 +14,7 @@ interface CustomTuningListProps {
 
 export function CustomTuningList({
   tunings,
+  showEmptyHint = true,
   onSelect,
   onDelete,
   onRename,
@@ -35,7 +37,7 @@ export function CustomTuningList({
   return (
     <>
       <h3>{UI.myTunings}</h3>
-      {tunings.length === 0 ? (
+      {tunings.length === 0 && showEmptyHint ? (
         <p className="hint hint-muted">{UI.noCustomTunings}</p>
       ) : (
         tunings.map((tuning) => (

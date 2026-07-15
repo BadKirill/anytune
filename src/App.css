@@ -360,6 +360,29 @@
   line-height: 1;
 }
 
+.custom-tuning-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.custom-tuning-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 0 4px;
+}
+
+.custom-tuning-action {
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.custom-tuning-action-danger {
+  color: var(--danger);
+}
+
 /* Swipeable custom tuning rows */
 
 .swipe-row {

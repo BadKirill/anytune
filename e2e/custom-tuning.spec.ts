@@ -42,14 +42,21 @@ async function openTuningPicker(
   await expect(page.getByRole('heading', { name: 'Tunings', exact: true })).toBeVisible()
 }
 
-async function swipeDeleteCustom(page: import('@playwright/test').Page, name: string) {
-  const row = page.locator('.swipe-row', { hasText: name })
-  await row.locator('.swipe-row-content').evaluate((el) => {
-    el.style.transform = 'translateX(-72px)'
-  })
-  await row.locator('.swipe-action-delete').evaluate((el) => {
-    ;(el as HTMLButtonElement).click()
-  })
+async function renameCustom(
+  page: import('@playwright/test').Page,
+  name: string,
+  nextName: string,
+) {
+  const item = page.locator('.custom-tuning-item', { hasText: name })
+  await item.getByRole('button', { name: 'Rename' }).click()
+  const renameInput = page.getByRole('textbox', { name: 'Tuning name' })
+  await renameInput.fill(nextName)
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+}
+
+async function deleteCustom(page: import('@playwright/test').Page, name: string) {
+  const item = page.locator('.custom-tuning-item', { hasText: name })
+  await item.getByRole('button', { name: 'Delete' }).click()
 }
 
 test('editing a string note creates a custom tuning and tunes against it', async ({
@@ -103,7 +110,7 @@ test('saved custom tuning appears under My tunings when list storage writes fail
   await expectMyTuningRow(page, 'Demiurge')
 })
 
-test('saved custom tunings persist, rename on swipe, and delete resets header', async ({
+test('saved custom tunings persist, rename, and delete resets header', async ({
   page,
 }) => {
   await stubMicrophone(page, G_SHARP_1_HZ)
@@ -118,30 +125,17 @@ test('saved custom tunings persist, rename on swipe, and delete resets header', 
   await page.getByRole('button', { name: 'Demiurge' }).click()
   const demiurgeRow = page.getByRole('button', { name: /Demiurge G#1/ })
   await demiurgeRow.scrollIntoViewIfNeeded()
-  await demiurgeRow.evaluate((el) => {
-    ;(el as HTMLButtonElement).click()
-  })
+  await demiurgeRow.click()
   await expect(page.getByRole('button', { name: 'Demiurge' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Demiurge' }).click()
-  const row = page.locator('.swipe-row', { hasText: 'Demiurge' })
-  await row.locator('.swipe-row-content').evaluate((el) => {
-    el.style.transform = 'translateX(72px)'
-  })
-  await row.locator('.swipe-action-edit').evaluate((el) => {
-    ;(el as HTMLButtonElement).click()
-  })
-  const renameInput = page.getByRole('textbox', { name: 'Tuning name' })
-  await renameInput.fill('Demiurge renamed')
-  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await renameCustom(page, 'Demiurge', 'Demiurge renamed')
   await expect(page.getByRole('button', { name: /Demiurge renamed G#1/ })).toBeVisible()
-  await page.getByRole('button', { name: /Demiurge renamed G#1/ }).evaluate((el) => {
-    ;(el as HTMLButtonElement).click()
-  })
+  await page.getByRole('button', { name: /Demiurge renamed G#1/ }).click()
   await expect(page.getByRole('button', { name: 'Demiurge renamed' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Demiurge renamed' }).click()
-  await swipeDeleteCustom(page, 'Demiurge renamed')
+  await deleteCustom(page, 'Demiurge renamed')
   await page.getByRole('button', { name: 'Close' }).click()
   await expect(page.getByRole('button', { name: 'Standard E' })).toBeVisible()
 })

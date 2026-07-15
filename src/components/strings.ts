@@ -26,6 +26,7 @@ export const UI = {
   save: 'Save',
   close: 'Close',
   delete: 'Delete',
+  rename: 'Rename',
   customName: 'Custom',
   installHint: 'Install this app: Share, then "Add to Home Screen"',
   pickNote: 'Choose note',

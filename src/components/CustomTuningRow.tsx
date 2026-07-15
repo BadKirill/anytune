@@ -1,32 +1,19 @@
 import { formatPitch } from '../core/music'
 import type { Tuning } from '../core/tunings'
-import { SwipeableRow } from './SwipeableRow'
 import { TextField } from './TextField'
 import { UI } from './strings'
 
-interface CustomTuningRowProps {
-  tuning: Tuning
-  editing: boolean
-  editName: string
-  onSelect: (tuning: Tuning) => void
-  onDelete: (id: string) => void
-  onStartEdit: (tuning: Tuning) => void
-  onEditNameChange: (name: string) => void
-  onSubmitEdit: () => void
-}
-
-export function CustomTuningRow({
-  tuning,
-  editing,
+function CustomTuningEditRow({
   editName,
-  onSelect,
-  onDelete,
-  onStartEdit,
   onEditNameChange,
   onSubmitEdit,
-}: CustomTuningRowProps) {
-  if (editing) {
-    return (
+}: {
+  editName: string
+  onEditNameChange: (name: string) => void
+  onSubmitEdit: () => void
+}) {
+  return (
+    <div className="custom-tuning-item">
       <div className="save-draft-row">
         <TextField
           value={editName}
@@ -38,18 +25,23 @@ export function CustomTuningRow({
           {UI.save}
         </button>
       </div>
-    )
-  }
+    </div>
+  )
+}
 
+function CustomTuningDisplayRow({
+  tuning,
+  onSelect,
+  onDelete,
+  onStartEdit,
+}: {
+  tuning: Tuning
+  onSelect: (tuning: Tuning) => void
+  onDelete: (id: string) => void
+  onStartEdit: (tuning: Tuning) => void
+}) {
   return (
-    <SwipeableRow
-      onDelete={() => {
-        onDelete(tuning.id)
-      }}
-      onEdit={() => {
-        onStartEdit(tuning)
-      }}
-    >
+    <div className="custom-tuning-item">
       <button
         type="button"
         className="list-row"
@@ -62,6 +54,58 @@ export function CustomTuningRow({
           {tuning.strings.map((s) => formatPitch(s.pitch)).join(' ')}
         </span>
       </button>
-    </SwipeableRow>
+      <div className="custom-tuning-actions">
+        <button
+          type="button"
+          className="custom-tuning-action"
+          onClick={() => {
+            onStartEdit(tuning)
+          }}
+        >
+          {UI.rename}
+        </button>
+        <button
+          type="button"
+          className="custom-tuning-action custom-tuning-action-danger"
+          onClick={() => {
+            onDelete(tuning.id)
+          }}
+        >
+          {UI.delete}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+interface CustomTuningRowProps {
+  tuning: Tuning
+  editing: boolean
+  editName: string
+  onSelect: (tuning: Tuning) => void
+  onDelete: (id: string) => void
+  onStartEdit: (tuning: Tuning) => void
+  onEditNameChange: (name: string) => void
+  onSubmitEdit: () => void
+}
+
+export function CustomTuningRow(props: CustomTuningRowProps) {
+  if (props.editing) {
+    return (
+      <CustomTuningEditRow
+        editName={props.editName}
+        onEditNameChange={props.onEditNameChange}
+        onSubmitEdit={props.onSubmitEdit}
+      />
+    )
+  }
+
+  return (
+    <CustomTuningDisplayRow
+      tuning={props.tuning}
+      onSelect={props.onSelect}
+      onDelete={props.onDelete}
+      onStartEdit={props.onStartEdit}
+    />
   )
 }
