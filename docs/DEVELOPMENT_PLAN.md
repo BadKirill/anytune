@@ -6,6 +6,10 @@ Steps 1–7 are complete: the app works as an installable PWA with editable
 per-string tunings, presets, custom tuning persistence, and live pitch detection
 (verified end-to-end with synthetic mic input, including 43.65 Hz F1 in unit tests).
 
+**Chromatic tab:** Strings | Chromatic screen switch. Chromatic uses the same mic
+pipeline and `analyzeChromatic` (nearest 12-TET note + cents); no string list or
+tuning picker. Session-only screen mode.
+
 Repo-local knowledge graph lives under `docs/knowledge/`. Portable protocol:
 `AGENT_PROTOCOL.md` + root `AGENTS.md` (ChatGPT/Codex, Claude, Copilot, Cursor).
 Cursor also has `.cursor/rules/knowledge-graph.mdc`. Automation: `knowledge:refresh`
@@ -64,11 +68,11 @@ Ruff and complexipy are Python-only tools; the TypeScript equivalents, enforced 
 flowchart TD
     Mic[Microphone getUserMedia AGC and noise suppression OFF] --> Worklet[AudioWorklet capture ring buffer]
     Worklet --> Pitch[PitchDetector pitchy MPM window 4096 to 8192]
-    Pitch --> Analyzer[TuningAnalyzer nearest target string plus cents offset]
+    Pitch --> Analyzer[TuningAnalyzer nearest string or analyzeChromatic nearest note]
     Presets[Preset tunings Standard DropD DropC etc] --> Store
     Editor[Custom tuning editor per string note picker] --> Store[TuningStore localStorage]
     Store --> Analyzer
-    Analyzer --> UI[Tuner UI needle gauge string highlight tune up or down hint]
+    Analyzer --> UI[Tuner UI Strings or Chromatic tabs gauge and hints]
     UI --> PWA[PWA installable build]
     UI --> Cap[Capacitor iOS and Android store builds]
 ```

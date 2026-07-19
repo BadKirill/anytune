@@ -1,14 +1,18 @@
 # Components / UI
 
-Tags: `ui`, `gauge`, `picker`, `sheet`, `strings`  
+Tags: `ui`, `gauge`, `picker`, `sheet`, `strings`, `chromatic`  
 Paths: `src/components/`, `src/App.tsx`, `src/App.css`, `src/index.css`
 
 ## Composition
 
-`App.tsx` owns modal union (`none` | `presets` | `edit`) and lays out:
+`App.tsx` owns modal union (`none` | `presets` | `edit`) and screen tabs
+(`strings` | `chromatic`).
 
-Header (title + tuning name) → TunerGauge → TuneDirectionHint → ModeControls →
-StringList → InstallHint → modals (PresetPicker / NotePicker).
+**Strings:** Header (title + tuning name) → ScreenTabs → ModeControls (Auto +
+Listen) → TunerGauge → TuneDirectionHint → StringList → InstallHint → modals.
+
+**Chromatic:** Header (title + Chromatic label) → ScreenTabs → Listen only →
+TunerGauge → TuneDirectionHint. No StringList, Auto, or tuning picker.
 
 ## Components
 
@@ -16,7 +20,7 @@ StringList → InstallHint → modals (PresetPicker / NotePicker).
 | ---------------------------------------------- | ---------------------------------------------------------------- |
 | `TunerGauge.tsx`                               | SVG needle ±50¢, green in-tune                                   |
 | `StringList.tsx`                               | String buttons + thickness gauge; auto highlight / manual select |
-| `TuneDirectionHint.tsx`                        | Direction / idle / mic error copy                                |
+| `TuneDirectionHint.tsx`                        | Direction / idle / mic error copy (string + chromatic)           |
 | `PresetPicker.tsx`                             | Presets by instrument + My tunings + save draft                  |
 | `CustomTuningList.tsx` / `CustomTuningRow.tsx` | Saved customs: rename/delete/swipe                               |
 | `NotePicker.tsx`                               | Note + octave chips in Sheet                                     |
@@ -32,10 +36,11 @@ StringList → InstallHint → modals (PresetPicker / NotePicker).
 - Touch-first chips/buttons; dark theme in CSS.
 - Localization-ready: never hardcode user copy outside `strings.ts`.
 - Presentational components; side effects live in state/audio/storage.
+- Screen tabs reuse `.chip` / `.chip-selected`.
 
 ## Open when
 
-Layout, gauge feel, picker lists, swipe UX, install hint, copy changes.
+Layout, gauge feel, screen tabs, picker lists, swipe UX, install hint, copy.
 
 ## See also
 

@@ -1,6 +1,6 @@
 # State
 
-Tags: `state`, `hooks`, `useTunerState`  
+Tags: `state`, `hooks`, `useTunerState`, `chromatic`, `screen`  
 Path: `src/state/`
 
 ## Role
@@ -9,30 +9,34 @@ Compose tuner screen state without Redux/Zustand. Single hook surface for `App`.
 
 ## Modules
 
-| File                     | Role                                                        |
-| ------------------------ | ----------------------------------------------------------- |
-| `appState.ts`            | `useTunerState`, `TunerState`, draft edit, analysis routing |
-| `useSavedTunings.ts`     | Custom list, picker merge, save/delete/rename               |
-| `useStableAnalysis.ts`   | Raw analysis + clarity/freq → `stabilizePitchDisplay`       |
-| `customTuningActions.ts` | Factories: save draft / delete / rename                     |
-| `tuningDefaults.ts`      | `defaultTuning()` from presets                              |
+| File                     | Role                                                                   |
+| ------------------------ | ---------------------------------------------------------------------- |
+| `appState.ts`            | `useTunerState`, `TunerState`, screen tabs, draft edit, analysis route |
+| `useSavedTunings.ts`     | Custom list, picker merge, save/delete/rename                          |
+| `useStableAnalysis.ts`   | Generic cents/direction stabilize for string or chromatic payloads     |
+| `customTuningActions.ts` | Factories: save draft / delete / rename                                |
+| `tuningDefaults.ts`      | `defaultTuning()` from presets                                         |
 
 ## `TunerState` surface
 
-- Data: `tuning`, `pickerTunings`, `tuningsRevision`, `manualStringIndex`, `analysis`, `pitch`
-- Actions: `selectTuning`, `selectString`, `editString`, `saveDraft`, `deleteCustom`, `renameCustom`, `refreshMyTunings`
+- Data: `screen` (`strings` \| `chromatic`), `tuning`, `pickerTunings`,
+  `tuningsRevision`, `manualStringIndex`, `analysis` (`DisplayAnalysis`), `pitch`
+- Actions: `setScreen`, `selectTuning`, `selectString`, `editString`, `saveDraft`,
+  `deleteCustom`, `renameCustom`, `refreshMyTunings`
 
 ## Analysis routing
 
 ```
-frequency + tuning + manualStringIndex
+frequency + screen + tuning + manualStringIndex
   → null frequency? null
-  → manual null? analyze(frequency, tuning)
-  → else analyzeString(frequency, tuning, index)
-  → useStableAnalysis(..., scope=`${tuning.id}:${auto|index}`)
+  → screen chromatic? { kind: 'chromatic', ...analyzeChromatic(f) }
+  → manual null? { kind: 'string', ...analyze(f, tuning) }
+  → else { kind: 'string', ...analyzeString(f, tuning, index) }
+  → useStableAnalysis(..., scope=`chromatic` | `strings:${tuning.id}:auto|index`)
 ```
 
-Scope reset clears stabilizer latch when tuning/mode changes.
+Scope reset clears stabilizer latch when screen / tuning / mode changes.
+Screen mode is session-only (not persisted).
 
 ## Draft lifecycle
 
@@ -49,12 +53,12 @@ Scope reset clears stabilizer latch when tuning/mode changes.
 
 ## Open when
 
-Mode switching, draft lifecycle, picker contents, analysis wiring to UI.
+Screen tabs, mode switching, draft lifecycle, picker contents, analysis wiring.
 
 ## See also
 
 - [audio.md](audio.md) — `usePitch`
-- [core-tunings.md](core-tunings.md) — analyze / draft ids
+- [core-tunings.md](core-tunings.md) — analyze / chromatic / draft ids
 - [core-signal.md](core-signal.md) — stabilizer
 - [storage.md](storage.md) — persistence
 - [components.md](components.md) — consumers

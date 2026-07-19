@@ -1,11 +1,12 @@
 # Core: tunings
 
-Tags: `tuning`, `preset`, `analyzer`, `custom`, `draft`  
+Tags: `tuning`, `preset`, `analyzer`, `custom`, `draft`, `chromatic`  
 Path: `src/core/tunings/`
 
 ## Role
 
-Tuning model, built-in presets, nearest-string analysis, custom/draft predicates.
+Tuning model, built-in presets, nearest-string / chromatic analysis, custom/draft
+predicates.
 
 ## Types (`types.ts`)
 
@@ -15,17 +16,18 @@ Tuning model, built-in presets, nearest-string analysis, custom/draft predicates
 
 ## Modules
 
-| File          | Key API                                                                                                                  |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `presets.ts`  | `PRESET_TUNINGS`, `DEFAULT_TUNING_ID` (`guitar-standard`)                                                                |
-| `analyzer.ts` | `IN_TUNE_CENTS = 5`, `analyze`, `analyzeString`, `TuneDirection`, `StringAnalysis`                                       |
-| `custom.ts`   | `DRAFT_TUNING_ID`, `isSavedCustomTuning`, `isDraftTuning`, `isUnmodifiedPreset`, `belongsInMyTunings`, `appearsInPicker` |
-| `index.ts`    | barrel                                                                                                                   |
+| File          | Key API                                                                                                                     |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `presets.ts`  | `PRESET_TUNINGS`, `DEFAULT_TUNING_ID` (`guitar-standard`)                                                                   |
+| `analyzer.ts` | `IN_TUNE_CENTS = 5`, `analyze`, `analyzeString`, `analyzeChromatic`, `TuneDirection`, `StringAnalysis`, `ChromaticAnalysis` |
+| `custom.ts`   | `DRAFT_TUNING_ID`, `isSavedCustomTuning`, `isDraftTuning`, `isUnmodifiedPreset`, `belongsInMyTunings`, `appearsInPicker`    |
+| `index.ts`    | barrel                                                                                                                      |
 
 ## Analyzer behavior
 
-- Auto: nearest target on log-frequency scale → cents + direction.
+- Auto: nearest target string on log-frequency scale → cents + direction.
 - Manual: fixed string index via `analyzeString`.
+- Chromatic: nearest 12-TET note via `nearestPitch` → `ChromaticAnalysis` (no tuning).
 - Direction: `tighten` (flat) / `loosen` (sharp) / `in-tune` (|¢| ≤ 5).
 
 ## Custom / draft rules
@@ -35,8 +37,9 @@ Tuning model, built-in presets, nearest-string analysis, custom/draft predicates
 
 ## Open when
 
-New presets, in-tune threshold, string matching, draft/My tunings membership.
-Storage and state depend on these predicates — keep them in sync.
+New presets, in-tune threshold, string matching, chromatic nearest-note policy,
+draft/My tunings membership. Storage and state depend on these predicates — keep
+them in sync.
 
 ## See also
 

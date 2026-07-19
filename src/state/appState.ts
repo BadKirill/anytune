@@ -2,7 +2,14 @@ import { useCallback, useState } from 'react'
 
 import { usePitch } from '../audio/usePitch'
 import { pitchesEqual, type Pitch } from '../core/music'
-import { analyze, analyzeString, type StringAnalysis, type Tuning } from '../core/tunings'
+import {
+  analyze,
+  analyzeChromatic,
+  analyzeString,
+  type ChromaticAnalysis,
+  type StringAnalysis,
+  type Tuning,
+} from '../core/tunings'
 import { DRAFT_TUNING_ID } from '../core/tunings/custom'
 import { readActiveTuning, writeActiveTuning } from '../storage/customTuningsStore'
 
@@ -11,6 +18,11 @@ import { useSavedTunings } from './useSavedTunings'
 import { useStableAnalysis } from './useStableAnalysis'
 
 export { DRAFT_TUNING_ID }
+
+export type TunerScreen = 'strings' | 'chromatic'
+
+export type DisplayAnalysis =
+  ({ kind: 'string' } & StringAnalysis) | ({ kind: 'chromatic' } & ChromaticAnalysis)
 
 function withEditedString(prev: Tuning, index: number, notePitch: Pitch): Tuning {
   const current = prev.strings[index]?.pitch
@@ -26,11 +38,13 @@ function withEditedString(prev: Tuning, index: number, notePitch: Pitch): Tuning
 }
 
 export interface TunerState {
+  screen: TunerScreen
+  setScreen: (screen: TunerScreen) => void
   tuning: Tuning
   pickerTunings: Tuning[]
   tuningsRevision: number
   manualStringIndex: number | null
-  analysis: StringAnalysis | null
+  analysis: DisplayAnalysis | null
   pitch: ReturnType<typeof usePitch>
   selectTuning: (tuning: Tuning) => void
   selectString: (index: number | null) => void
@@ -41,21 +55,48 @@ export interface TunerState {
   refreshMyTunings: () => void
 }
 
+function computeStringAnalysis(
+  frequency: number,
+  tuning: Tuning,
+  manualStringIndex: number | null,
+): DisplayAnalysis | null {
+  const raw =
+    manualStringIndex === null
+      ? analyze(frequency, tuning)
+      : analyzeString(frequency, tuning, manualStringIndex)
+  return raw ? { kind: 'string', ...raw } : null
+}
+
 function computeAnalysis(
+  screen: TunerScreen,
   frequency: number | null,
   tuning: Tuning,
   manualStringIndex: number | null,
-): StringAnalysis | null {
+): DisplayAnalysis | null {
   if (frequency === null) {
     return null
   }
-  return manualStringIndex === null
-    ? analyze(frequency, tuning)
-    : analyzeString(frequency, tuning, manualStringIndex)
+  if (screen === 'chromatic') {
+    return { kind: 'chromatic', ...analyzeChromatic(frequency) }
+  }
+  return computeStringAnalysis(frequency, tuning, manualStringIndex)
+}
+
+function analysisScope(
+  screen: TunerScreen,
+  tuningId: string,
+  manualStringIndex: number | null,
+): string {
+  if (screen === 'chromatic') {
+    return 'chromatic'
+  }
+  const mode = manualStringIndex === null ? 'auto' : String(manualStringIndex)
+  return `strings:${tuningId}:${mode}`
 }
 
 /** Single source of truth for the tuner screen. */
 export function useTunerState(): TunerState {
+  const [screen, setScreen] = useState<TunerScreen>('strings')
   const [tuning, setTuning] = useState<Tuning>(
     () => readActiveTuning() ?? defaultTuning(),
   )
@@ -64,8 +105,8 @@ export function useTunerState(): TunerState {
 
   const saved = useSavedTunings(tuning, setTuning)
 
-  const rawAnalysis = computeAnalysis(pitch.frequency, tuning, manualStringIndex)
-  const scope = `${tuning.id}:${manualStringIndex === null ? 'auto' : String(manualStringIndex)}`
+  const rawAnalysis = computeAnalysis(screen, pitch.frequency, tuning, manualStringIndex)
+  const scope = analysisScope(screen, tuning.id, manualStringIndex)
   const analysis = useStableAnalysis(rawAnalysis, pitch.clarity, pitch.frequency, scope)
 
   const selectTuning = useCallback((next: Tuning) => {
@@ -79,6 +120,8 @@ export function useTunerState(): TunerState {
   }, [])
 
   return {
+    screen,
+    setScreen,
     tuning,
     pickerTunings: saved.pickerTunings,
     tuningsRevision: saved.tuningsRevision,

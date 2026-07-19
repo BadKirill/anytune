@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { pitchToFrequency, type NoteName } from '../music'
-import { analyze, analyzeString } from './analyzer'
+import { analyze, analyzeChromatic, analyzeString } from './analyzer'
 import { PRESET_TUNINGS } from './presets'
 import type { Tuning } from './types'
 
@@ -72,6 +72,35 @@ describe('analyzeString', () => {
 
   it('returns null for an out-of-range string index', () => {
     expect(analyzeString(440, DEMIURGE, 9)).toBeNull()
+  })
+})
+
+describe('analyzeChromatic', () => {
+  it('reports in-tune for exact A4', () => {
+    expect(analyzeChromatic(440)).toEqual({
+      pitch: { note: 'A', octave: 4 },
+      cents: 0,
+      direction: 'in-tune',
+    })
+  })
+
+  it('says tighten when flat and loosen when sharp of nearest note', () => {
+    const a4 = pitchToFrequency({ note: 'A', octave: 4 })
+    expect(analyzeChromatic(a4 * 0.98).direction).toBe('tighten')
+    expect(analyzeChromatic(a4 * 1.02).direction).toBe('loosen')
+  })
+
+  it('treats offsets within 5 cents as in tune', () => {
+    const target = pitchToFrequency({ note: 'E', octave: 2 })
+    const fourCentsSharp = target * 2 ** (4 / 1200)
+    expect(analyzeChromatic(fourCentsSharp).direction).toBe('in-tune')
+  })
+
+  it('picks the nearer note between two semitones', () => {
+    const f1 = pitchToFrequency({ note: 'F', octave: 1 })
+    const fSharp1 = pitchToFrequency({ note: 'F#', octave: 1 })
+    expect(analyzeChromatic(f1 * 1.02).pitch).toEqual({ note: 'F', octave: 1 })
+    expect(analyzeChromatic(fSharp1 * 0.98).pitch).toEqual({ note: 'F#', octave: 1 })
   })
 })
 
