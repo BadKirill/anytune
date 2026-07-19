@@ -3,11 +3,23 @@
 AnyTune is a mobile-first guitar/bass tuner with fully editable per-string tunings.
 One TypeScript codebase: Vite + React PWA, wrapped with Capacitor for the app stores.
 
-## Read first
+This file is the **tool-agnostic** entry for Cursor, ChatGPT/Codex, Claude Code,
+GitHub Copilot, and any other coding agent with repo access.
 
-- [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) — architecture, decisions, and the step-by-step development plan. Keep it updated when steps complete or decisions change.
-- [docs/CI.md](docs/CI.md) — CI/CD pipeline: separate GitHub checks and post-deploy UI smoke tests.
-- [.cursor/rules/code-style.md](.cursor/rules/code-style.md) — enforced code-style rules.
+## Read first (mandatory for code changes)
+
+1. [docs/knowledge/AGENT_PROTOCOL.md](docs/knowledge/AGENT_PROTOCOL.md) — portable protocol for **all** agents
+2. [docs/knowledge/INDEX.md](docs/knowledge/INDEX.md) — knowledge graph: tag → area pages (do **not** scan the whole repo)
+3. Human catalog: [docs/knowledge/CATALOG.md](docs/knowledge/CATALOG.md)
+
+After structural changes: `npm run knowledge:refresh` → update area docs →
+`npm run knowledge:check`. Wiki mirrors on `master` via CI; locally
+`npm run knowledge:wiki`.
+
+Also: [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) · [docs/CI.md](docs/CI.md) ·
+[.cursor/rules/code-style.md](.cursor/rules/code-style.md) (Cursor) ·
+[CLAUDE.md](CLAUDE.md) · [.github/copilot-instructions.md](.github/copilot-instructions.md) ·
+[llms.txt](llms.txt)
 
 ## Workflow
 

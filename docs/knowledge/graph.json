@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "project": "anytune",
+  "wiki": "https://github.com/BadKirill/anytune/wiki",
+  "entry": "docs/knowledge/INDEX.md",
+  "catalog": "docs/knowledge/CATALOG.md",
+  "nodes": [
+    {
+      "id": "architecture",
+      "title": "Architecture & data flow",
+      "path": "docs/knowledge/areas/architecture.md",
+      "tags": ["architecture", "layers", "data-flow"],
+      "roots": ["src/", "docs/DEVELOPMENT_PLAN.md", "AGENTS.md"]
+    },
+    {
+      "id": "core-music",
+      "title": "Core music theory",
+      "path": "docs/knowledge/areas/core-music.md",
+      "tags": ["music", "midi", "frequency", "cents", "notes"],
+      "roots": ["src/core/music/"]
+    },
+    {
+      "id": "core-signal",
+      "title": "Core signal processing",
+      "path": "docs/knowledge/areas/core-signal.md",
+      "tags": ["stabilizer", "pluck", "signal", "jitter"],
+      "roots": ["src/core/signal/"]
+    },
+    {
+      "id": "core-tunings",
+      "title": "Tunings model & analyzer",
+      "path": "docs/knowledge/areas/core-tunings.md",
+      "tags": ["tuning", "preset", "analyzer", "custom", "draft"],
+      "roots": ["src/core/tunings/"]
+    },
+    {
+      "id": "audio",
+      "title": "Audio capture & pitch detection",
+      "path": "docs/knowledge/areas/audio.md",
+      "tags": ["mic", "worklet", "pitchy", "agc", "reference-tone"],
+      "roots": ["src/audio/"]
+    },
+    {
+      "id": "components",
+      "title": "React UI components",
+      "path": "docs/knowledge/areas/components.md",
+      "tags": ["ui", "gauge", "picker", "sheet", "strings"],
+      "roots": ["src/components/", "src/App.tsx", "src/App.css", "src/index.css"]
+    },
+    {
+      "id": "state",
+      "title": "Tuner screen state",
+      "path": "docs/knowledge/areas/state.md",
+      "tags": ["state", "hooks", "useTunerState"],
+      "roots": ["src/state/"]
+    },
+    {
+      "id": "storage",
+      "title": "localStorage persistence",
+      "path": "docs/knowledge/areas/storage.md",
+      "tags": ["storage", "localStorage", "persist", "migrate"],
+      "roots": ["src/storage/"]
+    },
+    {
+      "id": "testing",
+      "title": "Unit & E2E tests",
+      "path": "docs/knowledge/areas/testing.md",
+      "tags": ["test", "vitest", "playwright", "e2e"],
+      "roots": ["e2e/", "**/*.test.ts", "playwright.config.ts"]
+    },
+    {
+      "id": "ci-cd",
+      "title": "CI/CD & deploy",
+      "path": "docs/knowledge/areas/ci-cd.md",
+      "tags": ["ci", "deploy", "pages", "github-actions"],
+      "roots": [".github/workflows/", "docs/CI.md"]
+    },
+    {
+      "id": "patterns",
+      "title": "Patterns & hard rules",
+      "path": "docs/knowledge/areas/patterns-and-rules.md",
+      "tags": ["eslint", "style", "constraints", "patterns"],
+      "roots": [".cursor/rules/", "eslint.config.js", "AGENTS.md"]
+    },
+    {
+      "id": "tooling",
+      "title": "Build & tooling",
+      "path": "docs/knowledge/areas/tooling.md",
+      "tags": ["vite", "pwa", "typescript", "npm"],
+      "roots": ["vite.config.ts", "package.json", "tsconfig*.json", "scripts/"]
+    },
+    {
+      "id": "file-index",
+      "title": "Complete file index",
+      "path": "docs/knowledge/areas/file-index.md",
+      "tags": ["inventory", "files"],
+      "roots": ["."]
+    }
+  ],
+  "edges": [
+    { "from": "audio", "to": "core-music", "rel": "uses-pitch-types" },
+    { "from": "audio", "to": "core-signal", "rel": "uses-pluck-for-reference-tone" },
+    { "from": "state", "to": "audio", "rel": "calls-usePitch" },
+    { "from": "state", "to": "core-tunings", "rel": "analyzes" },
+    { "from": "state", "to": "core-signal", "rel": "stabilizes-display" },
+    { "from": "state", "to": "storage", "rel": "persists" },
+    { "from": "components", "to": "state", "rel": "renders" },
+    { "from": "components", "to": "core-music", "rel": "formats-pitch" },
+    { "from": "core-tunings", "to": "core-music", "rel": "uses" },
+    { "from": "core-signal", "to": "core-tunings", "rel": "uses-IN_TUNE-and-direction" },
+    { "from": "storage", "to": "core-tunings", "rel": "membership-predicates" },
+    { "from": "testing", "to": "audio", "rel": "stubs-mic-pipeline" },
+    { "from": "testing", "to": "core-music", "rel": "unit-tests" },
+    { "from": "testing", "to": "core-tunings", "rel": "unit-tests" },
+    { "from": "ci-cd", "to": "testing", "rel": "runs" },
+    { "from": "patterns", "to": "architecture", "rel": "enforces" },
+    { "from": "tooling", "to": "ci-cd", "rel": "scripts-used-by" }
+  ],
+  "dataFlow": [
+    "getUserMedia(micStream)",
+    "AudioWorklet capture-processor (8192)",
+    "detectPitch (pitchy)",
+    "micWindowHandler median/jump gate",
+    "usePitch / PitchState",
+    "analyze | analyzeString",
+    "stabilizePitchDisplay / useStableAnalysis",
+    "TunerGauge + TuneDirectionHint + StringList"
+  ]
+}

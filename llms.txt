@@ -1,0 +1,34 @@
+# AnyTune
+
+> Free guitar/bass tuner PWA with editable per-string tunings.
+> Live: https://badkirill.github.io/anytune/
+
+## Agent entry (mandatory for code work)
+
+- [Agent guide](AGENTS.md): workflow, stack, hard rules
+- [Agent protocol](docs/knowledge/AGENT_PROTOCOL.md): selective reading + knowledge maintenance
+- [Knowledge index](docs/knowledge/INDEX.md): tag → area routing (read this first)
+- [Knowledge catalog](docs/knowledge/CATALOG.md): human overview
+- [Knowledge graph](docs/knowledge/graph.json): machine nodes/edges
+
+## Area guides
+
+- [Architecture](docs/knowledge/areas/architecture.md)
+- [Audio](docs/knowledge/areas/audio.md)
+- [Core music](docs/knowledge/areas/core-music.md)
+- [Core signal](docs/knowledge/areas/core-signal.md)
+- [Core tunings](docs/knowledge/areas/core-tunings.md)
+- [Components](docs/knowledge/areas/components.md)
+- [State](docs/knowledge/areas/state.md)
+- [Storage](docs/knowledge/areas/storage.md)
+- [Testing](docs/knowledge/areas/testing.md)
+- [CI/CD](docs/knowledge/areas/ci-cd.md)
+- [Patterns](docs/knowledge/areas/patterns-and-rules.md)
+- [Tooling](docs/knowledge/areas/tooling.md)
+- [File index](docs/knowledge/areas/file-index.md)
+
+## Optional tool-specific
+
+- [Claude entry](CLAUDE.md)
+- [Copilot instructions](.github/copilot-instructions.md)
+- [Cursor knowledge rule](.cursor/rules/knowledge-graph.mdc)

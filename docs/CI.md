@@ -8,7 +8,11 @@ Every push and pull request runs the **CI** workflow with five separate checks v
 | Format (Prettier)      | `npm run format:check`                |
 | Typecheck (TypeScript) | `npm run typecheck`                   |
 | Unit tests (Vitest)    | `npm run test`                        |
+| Knowledge graph        | `npm run knowledge:check`             |
 | E2E (Playwright local) | `npm run test:e2e` against dev server |
+
+Pushes to `master` that touch `docs/knowledge/**` also run **Knowledge wiki**,
+which mirrors the catalog to https://github.com/BadKirill/anytune/wiki.
 
 Pushes to `master` also run the **Deploy** workflow:
 
