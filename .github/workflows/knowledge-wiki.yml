@@ -1,0 +1,35 @@
+# Mirrors docs/knowledge to the GitHub Wiki after changes land on master.
+name: Knowledge wiki
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'docs/knowledge/**'
+      - 'scripts/sync-knowledge-wiki.mjs'
+      - 'scripts/refresh-file-index.mjs'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: knowledge-wiki
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync GitHub Wiki
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Mirror knowledge → wiki
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run knowledge:wiki

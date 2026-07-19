@@ -36,3 +36,9 @@ Requires Node 20+.
 
 See [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) for architecture decisions
 and the development roadmap, and [AGENTS.md](AGENTS.md) for contributor/agent rules.
+
+**Knowledge graph:** [docs/knowledge/AGENT_PROTOCOL.md](docs/knowledge/AGENT_PROTOCOL.md)
+(all agents) · [INDEX.md](docs/knowledge/INDEX.md) · [CATALOG.md](docs/knowledge/CATALOG.md) ·
+wiki https://github.com/BadKirill/anytune/wiki  
+For ChatGPT without repo access: pin those three files in Project knowledge.
+With Codex/repo: `AGENTS.md` is loaded first.

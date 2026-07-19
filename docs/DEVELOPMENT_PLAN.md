@@ -6,6 +6,12 @@ Steps 1–7 are complete: the app works as an installable PWA with editable
 per-string tunings, presets, custom tuning persistence, and live pitch detection
 (verified end-to-end with synthetic mic input, including 43.65 Hz F1 in unit tests).
 
+Repo-local knowledge graph lives under `docs/knowledge/`. Portable protocol:
+`AGENT_PROTOCOL.md` + root `AGENTS.md` (ChatGPT/Codex, Claude, Copilot, Cursor).
+Cursor also has `.cursor/rules/knowledge-graph.mdc`. Automation: `knowledge:refresh`
+(file inventory), `knowledge:check` (CI job), wiki sync on `master`
+(`.github/workflows/knowledge-wiki.yml`).
+
 Remaining:
 
 - Step 8 (Capacitor shell) — not started; requires Xcode / Android Studio.
