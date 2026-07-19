@@ -23,7 +23,8 @@ function gaugeCentsFor(analysis: DisplayAnalysis | null): number | null {
   if (!analysis) {
     return null
   }
-  if (analysis.direction === 'in-tune') {
+  // Strings: snap needle to center when in-tune. Chromatic: always show live cents.
+  if (analysis.kind === 'string' && analysis.direction === 'in-tune') {
     return 0
   }
   return analysis.cents
@@ -218,6 +219,7 @@ function App() {
         cents={gaugeCentsFor(analysis)}
         targetLabel={gaugeTargetLabel(state, analysis)}
         inTune={analysis?.direction === 'in-tune'}
+        chromatic={chromatic}
       />
       <TuneDirectionHint
         pitch={pitch}

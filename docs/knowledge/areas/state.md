@@ -13,7 +13,7 @@ Compose tuner screen state without Redux/Zustand. Single hook surface for `App`.
 | ------------------------ | ---------------------------------------------------------------------- |
 | `appState.ts`            | `useTunerState`, `TunerState`, screen tabs, draft edit, analysis route |
 | `useSavedTunings.ts`     | Custom list, picker merge, save/delete/rename                          |
-| `useStableAnalysis.ts`   | Generic cents/direction stabilize for string or chromatic payloads     |
+| `useStableAnalysis.ts`   | Stabilize string analysis; chromatic uses passthrough (live cents)     |
 | `customTuningActions.ts` | Factories: save draft / delete / rename                                |
 | `tuningDefaults.ts`      | `defaultTuning()` from presets                                         |
 
@@ -32,7 +32,7 @@ frequency + screen + tuning + manualStringIndex
   → screen chromatic? { kind: 'chromatic', ...analyzeChromatic(f) }
   → manual null? { kind: 'string', ...analyze(f, tuning) }
   → else { kind: 'string', ...analyzeString(f, tuning, index) }
-  → useStableAnalysis(..., scope=`chromatic` | `strings:${tuning.id}:auto|index`)
+  → useStableAnalysis(..., scope=…, mode=`passthrough` on chromatic | `stabilize` on strings)
 ```
 
 Scope reset clears stabilizer latch when screen / tuning / mode changes.

@@ -49,19 +49,25 @@ export function useMicControls(setState: Dispatch<SetStateAction<PitchState>>): 
   }, [setState])
 
   const start = useCallback(() => {
-    if (!sessionRef.current) {
-      activeRef.current = true
-      restart()
-    }
+    activeRef.current = true
+    // Always rebuild: a suspended/dead session can leave sessionRef set while silent.
+    restart()
   }, [restart])
 
   useEffect(() => {
-    const off = onAppResume(restart)
+    const off = onAppResume(() => {
+      if (activeRef.current) {
+        restartRef.current()
+      }
+    })
+    return off
+  }, [])
+
+  useEffect(() => {
     return () => {
-      off()
       stop()
     }
-  }, [restart, stop])
+  }, [stop])
 
   return { start, stop }
 }

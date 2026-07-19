@@ -4,9 +4,11 @@ const NEEDLE_MAX_DEGREES = 60
 interface TunerGaugeProps {
   /** Cents offset to display, clamped to +-50; null parks the needle. */
   cents: number | null
-  /** Label of the target note, e.g. "G#1". */
+  /** Label under the needle: target string note, or detected nearest note. */
   targetLabel: string | null
   inTune: boolean
+  /** Chromatic: show ♭ / # marks so center reads as detected pitch offset. */
+  chromatic?: boolean
 }
 
 function needleAngle(cents: number | null): number {
@@ -25,7 +27,54 @@ function tickMarks(): { angle: number; major: boolean }[] {
   return ticks
 }
 
-export function TunerGauge({ cents, targetLabel, inTune }: TunerGaugeProps) {
+function GaugeTicks() {
+  return tickMarks().map(({ angle: tick, major }) => (
+    <line
+      key={tick}
+      x1="100"
+      y1="24"
+      x2="100"
+      y2={major ? 34 : 30}
+      stroke="var(--muted)"
+      strokeWidth={major ? 2 : 1}
+      transform={`rotate(${String(tick)} 100 100)`}
+    />
+  ))
+}
+
+function ChromaticFlatSharpMarks() {
+  return (
+    <>
+      <text
+        x="36"
+        y="108"
+        textAnchor="middle"
+        fill="var(--muted)"
+        fontSize="18"
+        fontWeight="600"
+      >
+        ♭
+      </text>
+      <text
+        x="164"
+        y="108"
+        textAnchor="middle"
+        fill="var(--muted)"
+        fontSize="18"
+        fontWeight="600"
+      >
+        #
+      </text>
+    </>
+  )
+}
+
+export function TunerGauge({
+  cents,
+  targetLabel,
+  inTune,
+  chromatic = false,
+}: TunerGaugeProps) {
   const angle = needleAngle(cents)
   const active = cents !== null
   const color = inTune ? 'var(--in-tune)' : active ? 'var(--accent)' : 'var(--muted)'
@@ -40,18 +89,7 @@ export function TunerGauge({ cents, targetLabel, inTune }: TunerGaugeProps) {
           strokeWidth="3"
           strokeLinecap="round"
         />
-        {tickMarks().map(({ angle: tick, major }) => (
-          <line
-            key={tick}
-            x1="100"
-            y1="24"
-            x2="100"
-            y2={major ? 34 : 30}
-            stroke="var(--muted)"
-            strokeWidth={major ? 2 : 1}
-            transform={`rotate(${String(tick)} 100 100)`}
-          />
-        ))}
+        <GaugeTicks />
         <line
           x1="100"
           y1="100"
@@ -68,6 +106,7 @@ export function TunerGauge({ cents, targetLabel, inTune }: TunerGaugeProps) {
           }}
         />
         <circle cx="100" cy="100" r="5" fill={color} />
+        {chromatic ? <ChromaticFlatSharpMarks /> : null}
       </svg>
       <div className={`gauge-note${inTune ? ' gauge-note-in-tune' : ''}`}>
         {targetLabel ?? '—'}

@@ -48,12 +48,16 @@ function stabilizeAnalysis<T extends CentsDirection>(
   }
 }
 
-/** Stabilizes needle display for string or chromatic analysis payloads. */
+/**
+ * Stabilizes needle display for string analysis.
+ * Pass `mode: 'passthrough'` for chromatic — latch-to-center would hide live cents.
+ */
 export function useStableAnalysis<T extends CentsDirection>(
   rawAnalysis: T | null,
   clarity: number | null,
   frequency: number | null,
   scope: string,
+  mode: 'stabilize' | 'passthrough' = 'stabilize',
 ): T | null {
   const stabilizerRef = useRef<PitchStabilizerState>(initialPitchStabilizerState())
   const scopeRef = useRef(scope)
@@ -64,6 +68,10 @@ export function useStableAnalysis<T extends CentsDirection>(
   }
 
   return useMemo(() => {
+    if (mode === 'passthrough') {
+      stabilizerRef.current = initialPitchStabilizerState()
+      return rawAnalysis
+    }
     const stabilized = stabilizeAnalysis(
       stabilizerRef.current,
       rawAnalysis,
@@ -72,5 +80,5 @@ export function useStableAnalysis<T extends CentsDirection>(
     )
     stabilizerRef.current = stabilized.stabilizer
     return stabilized.analysis
-  }, [rawAnalysis, clarity, frequency])
+  }, [rawAnalysis, clarity, frequency, mode])
 }

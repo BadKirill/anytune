@@ -36,6 +36,28 @@ function toMicError(error: unknown): MicStreamError {
   return new MicStreamError('unavailable')
 }
 
+function watchContextSuspend(context: AudioContext, onDead: () => void): () => void {
+  const onState = (): void => {
+    if (context.state !== 'suspended') {
+      return
+    }
+    void context
+      .resume()
+      .then(() => {
+        if (context.state !== 'running') {
+          onDead()
+        }
+      })
+      .catch(() => {
+        onDead()
+      })
+  }
+  context.addEventListener('statechange', onState)
+  return () => {
+    context.removeEventListener('statechange', onState)
+  }
+}
+
 /**
  * Requests the microphone and streams 8192-sample windows to onWindow.
  * Must be called from a user gesture handler (mobile autoplay policy).
@@ -77,10 +99,12 @@ export async function startMicSession(
   for (const track of stream.getAudioTracks()) {
     track.addEventListener('ended', notifyLost)
   }
+  const unwatch = watchContextSuspend(context, notifyLost)
 
   return {
     sampleRate: context.sampleRate,
     stop: () => {
+      unwatch()
       worklet.port.onmessage = null
       source.disconnect()
       for (const track of stream.getTracks()) {

@@ -41,7 +41,15 @@ Bass fundamentals get a slightly lower bar; still reject weak detections.
 `idle` → `starting` (`beginMicSession`) → `listening` | `error`  
 `stopMicSession` clears refs, stops worklet/tracks, returns `idle`.
 
-On audio graph end, mic stream may schedule `restart` via timeout if still active.
+On audio graph end or a suspended AudioContext that cannot resume, mic stream
+schedules `restart` via timeout if still active.
+
+`useMicControls`: Start always rebuilds the session (dead/suspended sessions can
+leave a non-null ref). App resume restarts only while listening; unmount stop is
+separate from resume registration so dependency churn does not kill the mic.
+
+`referenceTone.warmReferenceAudio` rebuilds the shared context if resume fails
+after long idle.
 
 ## Patterns
 
