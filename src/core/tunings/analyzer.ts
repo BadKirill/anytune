@@ -1,4 +1,4 @@
-import { centsBetween, pitchToFrequency } from '../music'
+import { centsBetween, nearestPitch, pitchToFrequency, type Pitch } from '../music'
 import type { Tuning } from './types'
 
 export type TuneDirection = 'tighten' | 'loosen' | 'in-tune'
@@ -6,6 +6,14 @@ export type TuneDirection = 'tighten' | 'loosen' | 'in-tune'
 export interface StringAnalysis {
   /** Index into tuning.strings of the closest target string. */
   stringIndex: number
+  /** Signed offset in cents from the target: positive = sharp. */
+  cents: number
+  direction: TuneDirection
+}
+
+/** Nearest 12-TET note analysis (no string / tuning context). */
+export interface ChromaticAnalysis {
+  pitch: Pitch
   /** Signed offset in cents from the target: positive = sharp. */
   cents: number
   direction: TuneDirection
@@ -55,4 +63,11 @@ export function analyze(frequency: number, tuning: Tuning): StringAnalysis | nul
     cents: best.cents,
     direction: directionFor(best.cents),
   }
+}
+
+/** Matches a frequency to the nearest equal-temperament note and reports cents. */
+export function analyzeChromatic(frequency: number): ChromaticAnalysis {
+  const pitch = nearestPitch(frequency)
+  const cents = centsBetween(frequency, pitchToFrequency(pitch))
+  return { pitch, cents, direction: directionFor(cents) }
 }

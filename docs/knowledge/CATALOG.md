@@ -12,20 +12,21 @@ to the GitHub Wiki home page.
 
 ## 1. Product
 
-Mobile-first guitar/bass tuner with fully editable per-string tunings. One
-TypeScript codebase: Vite + React PWA now; Capacitor store shells later.
-No backend — custom tunings live in `localStorage`.
+Mobile-first guitar/bass tuner with fully editable per-string tunings plus a
+chromatic (nearest-note) tab. One TypeScript codebase: Vite + React PWA now;
+Capacitor store shells later. No backend — custom tunings live in `localStorage`.
 
 ## 2. Architecture (layers)
 
 ```
-Mic → AudioWorklet (8192) → pitchy → stabilize → analyze(tuning) → UI gauge/hint
-Presets + custom editor → storage → active Tuning → analyzer
+Mic → AudioWorklet (8192) → pitchy → stabilize
+  → strings: analyze(tuning) | chromatic: analyzeChromatic → UI gauge/hint
+Presets + custom editor → storage → active Tuning → string analyzer
 ```
 
 | Layer        | Path                          | Role                                            |
 | ------------ | ----------------------------- | ----------------------------------------------- |
-| Core music   | `src/core/music/`             | Notes, MIDI, Hz, cents — pure TS                |
+| Core music   | `src/core/music/`             | Notes, MIDI, Hz, cents, nearestPitch — pure TS  |
 | Core signal  | `src/core/signal/`            | Pitch display stabilizer, pluck synth           |
 | Core tunings | `src/core/tunings/`           | Tuning model, presets, analyzer, custom helpers |
 | Audio        | `src/audio/`                  | Mic, worklet, pitchy, reference tone, hooks     |

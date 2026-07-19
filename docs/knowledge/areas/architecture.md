@@ -15,13 +15,14 @@ getUserMedia (AGC/NS/EC OFF)
   → detectPitch(pitchy MPM) + clarity gate
   → median / jump filter (micWindowHandler)
   → usePitch → useTunerState
-  → analyze(frequency, tuning) or analyzeString(manual)
+  → screen strings: analyze(frequency, tuning) or analyzeString(manual)
+  → screen chromatic: analyzeChromatic(frequency)  // nearest 12-TET note
   → stabilizePitchDisplay (attack lock, decay hold)
-  → TunerGauge / TuneDirectionHint / StringList highlight
+  → TunerGauge / TuneDirectionHint / (StringList on strings screen)
 ```
 
 Parallel path: presets + string edits → `Tuning` → storage (`active` + custom list)
-→ same analyzer.
+→ string analyzer. Chromatic ignores active tuning for targeting.
 
 ## Layer contracts
 
@@ -36,13 +37,14 @@ Parallel path: presets + string edits → `Tuning` → storage (`active` + custo
 ## Entry points
 
 - App bootstrap: `src/main.tsx` → `App.tsx`
-- Screen state: `src/state/appState.ts` → `useTunerState`
+- Screen state: `src/state/appState.ts` → `useTunerState` (`screen` tabs)
 - Pitch pipeline: `src/audio/usePitch.ts`
 - Domain barrel: `src/core/music`, `src/core/tunings`
 
 ## Related docs
 
-- Plan / roadmap: `docs/DEVELOPMENT_PLAN.md` (steps 1–7 done; 8 Capacitor, 9 device)
+- Plan / roadmap: `docs/DEVELOPMENT_PLAN.md` (steps 1–7 done; chromatic tab;
+  8 Capacitor, 9 device)
 - Agent workflow: `AGENTS.md`
 - Patterns: [patterns-and-rules.md](patterns-and-rules.md)
 

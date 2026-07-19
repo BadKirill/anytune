@@ -16,7 +16,7 @@
       "id": "core-music",
       "title": "Core music theory",
       "path": "docs/knowledge/areas/core-music.md",
-      "tags": ["music", "midi", "frequency", "cents", "notes"],
+      "tags": ["music", "midi", "frequency", "cents", "notes", "nearest", "chromatic"],
       "roots": ["src/core/music/"]
     },
     {
@@ -30,7 +30,7 @@
       "id": "core-tunings",
       "title": "Tunings model & analyzer",
       "path": "docs/knowledge/areas/core-tunings.md",
-      "tags": ["tuning", "preset", "analyzer", "custom", "draft"],
+      "tags": ["tuning", "preset", "analyzer", "custom", "draft", "chromatic"],
       "roots": ["src/core/tunings/"]
     },
     {
@@ -44,14 +44,14 @@
       "id": "components",
       "title": "React UI components",
       "path": "docs/knowledge/areas/components.md",
-      "tags": ["ui", "gauge", "picker", "sheet", "strings"],
+      "tags": ["ui", "gauge", "picker", "sheet", "strings", "chromatic"],
       "roots": ["src/components/", "src/App.tsx", "src/App.css", "src/index.css"]
     },
     {
       "id": "state",
       "title": "Tuner screen state",
       "path": "docs/knowledge/areas/state.md",
-      "tags": ["state", "hooks", "useTunerState"],
+      "tags": ["state", "hooks", "useTunerState", "chromatic", "screen"],
       "roots": ["src/state/"]
     },
     {
@@ -122,8 +122,8 @@
     "detectPitch (pitchy)",
     "micWindowHandler median/jump gate",
     "usePitch / PitchState",
-    "analyze | analyzeString",
+    "analyze | analyzeString | analyzeChromatic",
     "stabilizePitchDisplay / useStableAnalysis",
-    "TunerGauge + TuneDirectionHint + StringList"
+    "TunerGauge + TuneDirectionHint + StringList (strings screen)"
   ]
 }

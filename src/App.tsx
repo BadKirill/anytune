@@ -9,12 +9,17 @@ import { TuneDirectionHint } from './components/TuneDirectionHint'
 import { TunerGauge } from './components/TunerGauge'
 import { UI } from './components/strings'
 import { formatPitch } from './core/music'
-import type { StringAnalysis } from './core/tunings'
-import { DRAFT_TUNING_ID, useTunerState, type TunerState } from './state/appState'
+import {
+  DRAFT_TUNING_ID,
+  useTunerState,
+  type DisplayAnalysis,
+  type TunerScreen,
+  type TunerState,
+} from './state/appState'
 
 type Modal = { kind: 'none' } | { kind: 'presets' } | { kind: 'edit'; index: number }
 
-function gaugeCentsFor(analysis: StringAnalysis | null): number | null {
+function gaugeCentsFor(analysis: DisplayAnalysis | null): number | null {
   if (!analysis) {
     return null
   }
@@ -24,6 +29,46 @@ function gaugeCentsFor(analysis: StringAnalysis | null): number | null {
   return analysis.cents
 }
 
+function gaugeTargetLabel(
+  state: TunerState,
+  analysis: DisplayAnalysis | null,
+): string | null {
+  if (analysis?.kind === 'chromatic') {
+    return formatPitch(analysis.pitch)
+  }
+  const targetIndex = state.manualStringIndex ?? analysis?.stringIndex ?? null
+  if (targetIndex === null) {
+    return null
+  }
+  const targetString = state.tuning.strings[targetIndex]
+  return targetString ? formatPitch(targetString.pitch) : null
+}
+
+function ScreenTabs({ state }: { state: TunerState }) {
+  const tabs: { id: TunerScreen; label: string }[] = [
+    { id: 'strings', label: UI.screenStrings },
+    { id: 'chromatic', label: UI.screenChromatic },
+  ]
+  return (
+    <div className="screen-tabs" role="tablist" aria-label={UI.appName}>
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          role="tab"
+          aria-selected={state.screen === tab.id}
+          className={state.screen === tab.id ? 'chip chip-selected' : 'chip'}
+          onClick={() => {
+            state.setScreen(tab.id)
+          }}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function Header({
   state,
   onOpenPresets,
@@ -31,6 +76,14 @@ function Header({
   state: TunerState
   onOpenPresets: () => void
 }) {
+  if (state.screen === 'chromatic') {
+    return (
+      <header className="app-header">
+        <h1 className="app-title">{UI.appName}</h1>
+        <span className="screen-label">{UI.screenChromatic}</span>
+      </header>
+    )
+  }
   return (
     <header className="app-header">
       <h1 className="app-title">{UI.appName}</h1>
@@ -43,6 +96,18 @@ function Header({
 
 function ModeControls({ state }: { state: TunerState }) {
   const listening = state.pitch.status === 'listening'
+  const listenButton = (
+    <button
+      type="button"
+      className={listening ? 'button-secondary' : 'button-primary'}
+      onClick={listening ? state.pitch.stop : state.pitch.start}
+    >
+      {listening ? UI.stopListening : UI.startListening}
+    </button>
+  )
+  if (state.screen === 'chromatic') {
+    return <div className="mode-row">{listenButton}</div>
+  }
   const auto = state.manualStringIndex === null
   return (
     <div className="mode-row">
@@ -55,13 +120,7 @@ function ModeControls({ state }: { state: TunerState }) {
       >
         {UI.auto}
       </button>
-      <button
-        type="button"
-        className={listening ? 'button-secondary' : 'button-primary'}
-        onClick={listening ? state.pitch.stop : state.pitch.start}
-      >
-        {listening ? UI.stopListening : UI.startListening}
-      </button>
+      {listenButton}
     </div>
   )
 }
@@ -114,13 +173,34 @@ function Modals({
   return null
 }
 
+function StringsExtras({
+  state,
+  setModal,
+}: {
+  state: TunerState
+  setModal: (modal: Modal) => void
+}) {
+  const { tuning, analysis, manualStringIndex } = state
+  const targetIndex =
+    manualStringIndex ?? (analysis?.kind === 'string' ? analysis.stringIndex : null)
+  return (
+    <StringList
+      tuning={tuning}
+      activeIndex={targetIndex}
+      manualIndex={manualStringIndex}
+      onSelect={state.selectString}
+      onEdit={(index) => {
+        setModal({ kind: 'edit', index })
+      }}
+    />
+  )
+}
+
 function App() {
   const state = useTunerState()
   const [modal, setModal] = useState<Modal>({ kind: 'none' })
-  const { tuning, analysis, pitch, manualStringIndex } = state
-
-  const targetIndex = manualStringIndex ?? analysis?.stringIndex ?? null
-  const targetString = targetIndex === null ? undefined : tuning.strings[targetIndex]
+  const { analysis, pitch, manualStringIndex, screen } = state
+  const chromatic = screen === 'chromatic'
 
   return (
     <div className="app">
@@ -132,34 +212,30 @@ function App() {
           setModal({ kind: 'presets' })
         }}
       />
+      <ScreenTabs state={state} />
       <ModeControls state={state} />
       <TunerGauge
         cents={gaugeCentsFor(analysis)}
-        targetLabel={targetString ? formatPitch(targetString.pitch) : null}
+        targetLabel={gaugeTargetLabel(state, analysis)}
         inTune={analysis?.direction === 'in-tune'}
       />
       <TuneDirectionHint
         pitch={pitch}
         analysis={analysis}
-        tuning={tuning}
+        tuning={state.tuning}
         manualMode={manualStringIndex !== null}
+        chromatic={chromatic}
       />
-      <StringList
-        tuning={tuning}
-        activeIndex={targetIndex}
-        manualIndex={manualStringIndex}
-        onSelect={state.selectString}
-        onEdit={(index) => {
-          setModal({ kind: 'edit', index })
-        }}
-      />
-      <Modals
-        state={state}
-        modal={modal}
-        onClose={() => {
-          setModal({ kind: 'none' })
-        }}
-      />
+      {!chromatic && <StringsExtras state={state} setModal={setModal} />}
+      {!chromatic && (
+        <Modals
+          state={state}
+          modal={modal}
+          onClose={() => {
+            setModal({ kind: 'none' })
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -5,14 +5,19 @@ import {
   stabilizePitchDisplay,
   type PitchStabilizerState,
 } from '../core/signal/pitchStabilizer'
-import type { StringAnalysis } from '../core/tunings'
+import type { TuneDirection } from '../core/tunings'
 
-function stabilizeAnalysis(
+export interface CentsDirection {
+  cents: number
+  direction: TuneDirection
+}
+
+function stabilizeAnalysis<T extends CentsDirection>(
   stabilizer: PitchStabilizerState,
-  raw: StringAnalysis | null,
+  raw: T | null,
   clarity: number | null,
   hasSignal: boolean,
-): { analysis: StringAnalysis | null; stabilizer: PitchStabilizerState } {
+): { analysis: T | null; stabilizer: PitchStabilizerState } {
   const nowMs = performance.now()
   if (!raw) {
     const result = stabilizePitchDisplay(stabilizer, {
@@ -43,12 +48,13 @@ function stabilizeAnalysis(
   }
 }
 
-export function useStableAnalysis(
-  rawAnalysis: StringAnalysis | null,
+/** Stabilizes needle display for string or chromatic analysis payloads. */
+export function useStableAnalysis<T extends CentsDirection>(
+  rawAnalysis: T | null,
   clarity: number | null,
   frequency: number | null,
   scope: string,
-): StringAnalysis | null {
+): T | null {
   const stabilizerRef = useRef<PitchStabilizerState>(initialPitchStabilizerState())
   const scopeRef = useRef(scope)
 

@@ -1,12 +1,15 @@
 /** All user-facing text, centralized for future RU/EN localization. */
 export const UI = {
   appName: 'Anytune',
+  screenStrings: 'Strings',
+  screenChromatic: 'Chromatic',
   auto: 'Auto',
   startListening: 'Start tuning',
   stopListening: 'Stop',
   starting: 'Starting microphone...',
   playAnyString: 'Play any string to begin',
   playSelectedString: 'Play the selected string',
+  playANote: 'Play a note to begin',
   tapAgainToEdit: 'Tap a string to target it, tap again to change its note',
   micDenied: 'Microphone access denied. Allow it in browser settings and retry.',
   micMissing: 'No microphone found on this device.',
