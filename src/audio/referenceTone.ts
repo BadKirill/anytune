@@ -76,9 +76,19 @@ function guitarChain(ctx: AudioContext, source: AudioNode, frequency: number): A
   return lowPass
 }
 
-/** Resumes the shared AudioContext so the first tap does not wait on suspend. */
+/** Resumes or recreates the shared AudioContext after idle suspend. */
 export async function warmReferenceAudio(): Promise<void> {
-  const ctx = getContext()
+  let ctx = getContext()
+  if (ctx.state === 'suspended') {
+    await ctx.resume()
+  }
+  if (ctx.state === 'running') {
+    return
+  }
+  // Long idle / iOS can leave a context that will not resume — rebuild.
+  context = null
+  bufferCache.clear()
+  ctx = getContext()
   if (ctx.state === 'suspended') {
     await ctx.resume()
   }
@@ -87,9 +97,12 @@ export async function warmReferenceAudio(): Promise<void> {
 /** Plays a short plucked-string reference tone for ear comparison. */
 export async function playReferencePitch(pitch: Pitch): Promise<void> {
   clearPlayback()
+  await warmReferenceAudio()
 
   const ctx = getContext()
-  await ctx.resume()
+  if (ctx.state !== 'running') {
+    await ctx.resume()
+  }
 
   const frequency = pitchToFrequency(pitch)
   const source = ctx.createBufferSource()

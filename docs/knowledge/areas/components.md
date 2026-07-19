@@ -12,7 +12,8 @@ Paths: `src/components/`, `src/App.tsx`, `src/App.css`, `src/index.css`
 Listen) → TunerGauge → TuneDirectionHint → StringList → InstallHint → modals.
 
 **Chromatic:** Header (title + Chromatic label) → ScreenTabs → Listen only →
-TunerGauge → TuneDirectionHint. No StringList, Auto, or tuning picker.
+TunerGauge (♭/# marks, live cents, no latch-to-center) → hint with cents /
+flat·sharp. No StringList, Auto, or tuning picker.
 
 ## Components
 

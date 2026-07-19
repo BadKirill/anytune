@@ -94,6 +94,10 @@ function analysisScope(
   return `strings:${tuningId}:${mode}`
 }
 
+function analysisMode(screen: TunerScreen): 'stabilize' | 'passthrough' {
+  return screen === 'chromatic' ? 'passthrough' : 'stabilize'
+}
+
 /** Single source of truth for the tuner screen. */
 export function useTunerState(): TunerState {
   const [screen, setScreen] = useState<TunerScreen>('strings')
@@ -107,7 +111,13 @@ export function useTunerState(): TunerState {
 
   const rawAnalysis = computeAnalysis(screen, pitch.frequency, tuning, manualStringIndex)
   const scope = analysisScope(screen, tuning.id, manualStringIndex)
-  const analysis = useStableAnalysis(rawAnalysis, pitch.clarity, pitch.frequency, scope)
+  const analysis = useStableAnalysis(
+    rawAnalysis,
+    pitch.clarity,
+    pitch.frequency,
+    scope,
+    analysisMode(screen),
+  )
 
   const selectTuning = useCallback((next: Tuning) => {
     setTuning(next)

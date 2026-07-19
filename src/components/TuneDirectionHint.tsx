@@ -21,11 +21,12 @@ const MIC_ERRORS = {
 type HintView =
   { tone: 'error' | 'normal' | 'muted' | 'in-tune'; text: string } | { tone: 'empty' }
 
-function directionSuffix(label: string, direction: StringAnalysis['direction']): string {
-  if (direction === 'in-tune') {
-    return `${label}: ${UI.inTune}`
+function formatCentsOffset(cents: number): string {
+  const rounded = Math.round(cents)
+  if (rounded > 0) {
+    return `+${String(rounded)}¢`
   }
-  return `${label}: ${direction === 'tighten' ? UI.tighten : UI.loosen}`
+  return `${String(rounded)}¢`
 }
 
 function stringDirectionText(analysis: StringAnalysis, tuning: Tuning): string {
@@ -34,11 +35,20 @@ function stringDirectionText(analysis: StringAnalysis, tuning: Tuning): string {
     return ''
   }
   const label = `${UI.stringWord} ${String(analysis.stringIndex + 1)} (${formatPitch(string.pitch)})`
-  return directionSuffix(label, analysis.direction)
+  if (analysis.direction === 'in-tune') {
+    return `${label}: ${UI.inTune}`
+  }
+  return `${label}: ${analysis.direction === 'tighten' ? UI.tighten : UI.loosen}`
 }
 
+/** Nearest note + live cents — not “correct note”, just how to center the needle. */
 function chromaticDirectionText(analysis: ChromaticAnalysis): string {
-  return directionSuffix(formatPitch(analysis.pitch), analysis.direction)
+  const note = formatPitch(analysis.pitch)
+  if (analysis.direction === 'in-tune') {
+    return `${note} · ${UI.chromaticCentered}`
+  }
+  const side = analysis.direction === 'tighten' ? UI.chromaticFlat : UI.chromaticSharp
+  return `${note} · ${formatCentsOffset(analysis.cents)} · ${side}`
 }
 
 function analysisHint(analysis: DisplayAnalysis, tuning: Tuning): HintView {
